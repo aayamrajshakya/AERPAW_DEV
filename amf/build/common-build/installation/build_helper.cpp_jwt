@@ -1,0 +1,65 @@
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The OpenAirInterface Software Alliance licenses this file to You under
+# the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.openairinterface.org/?page_id=698
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+# For more information about the OpenAirInterface (OAI) Software Alliance:
+#      contact@openairinterface.org
+################################################################################
+
+#-------------------------------------------------------------------------------
+#arg1 is force (0 or 1) (no interactive script)
+#arg2 is debug (0 or 1) (install debug libraries)
+install_cpp_jwt_from_git() {
+  echo "Starting to install cpp_jwt"
+  if [ $1 -eq 0 ]; then
+    read -p "Do you want to install CPP-JWT ? <y/N> " prompt
+    OPTION=""
+  else
+    prompt='y'
+    OPTION="-y"
+  fi
+
+  if [[ $prompt =~ [yY](es)* ]]
+  then
+
+    GIT_URL=https://github.com/arun11299/cpp-jwt.git
+    echo "Install Cpp-jwt from $GIT_URL"
+    pushd $OPENAIRCN_DIR/build/ext
+    echo "Downloading CPP-JWT"
+
+    if [[ $prompt =~ [yY](es)* ]]
+    then
+      $SUDO rm -rf cpp-jwt
+    fi
+
+    git clone $GIT_URL
+    cd cpp-jwt && git checkout -f v1.4
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    mkdir _build && cd _build
+    $CMAKE \
+      -DCPP_JWT_BUILD_TESTS=OFF \
+      -DCPP_JWT_BUILD_EXAMPLES=OFF ..
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    make
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    $SUDO make install
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    popd
+    rm -Rf $OPENAIRCN_DIR/build/ext/cpp-jwt/_build
+  fi
+  echo "cpp_jwt installation complete"
+  return 0
+}
