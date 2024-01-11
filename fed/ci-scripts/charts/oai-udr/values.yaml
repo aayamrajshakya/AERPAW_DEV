@@ -1,0 +1,91 @@
+kubernetesType: Openshift  #Vanilla for community kubernetes distribution
+
+nfimage:
+  repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-udr # image name either locally present or in a public/private repository
+  version: UDR_TAG #image tag, develop tag for experimental features 
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+tcpdumpimage:
+  repository: support-tools
+  version: 8.7-8
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+initContainer:
+  repository: docker.io/alpine/curl
+  version: 3.14
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+#imagePullSecrets: 
+#  - name: "regcred"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "oai-udr-sa"
+
+#service type is fixed to clusterIP, it is only support for non multus interface (eth0)
+
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+securityContext:
+  capabilities:
+    add:
+     - NET_ADMIN
+    drop:
+     - ALL
+  privileged: true
+
+service:
+  type: ClusterIP
+
+start:
+  udr: true
+  tcpdump: true #start tcpdump collection to analyse but beware it will take a lot of space in the container/persistent volume
+
+config:
+  tz: "Europe/Paris"
+  nrfFqdn: "oai-nrf"
+  sbiPortHttp1: 80
+  sbiPortHttp2: 8080
+
+persistent:
+  sharedvolume: true
+  volumeName: nfs-client
+  size: 1Gi
+  
+resources:
+  define: false
+  limits:
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
+    nf:
+      cpu: 100m
+      memory: 128Mi
+  requests:
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
+    nf:
+      cpu: 100m
+      memory: 128Mi
+
+readinessProbe: true
+
+livenessProbe: false
+
+terminationGracePeriodSeconds: 5
+
+nodeSelector: {}
+
+nodeName: demophon
+

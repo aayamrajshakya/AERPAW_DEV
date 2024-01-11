@@ -1,0 +1,683 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.openairinterface.org/?page_id=698
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+// Location of the CN builder node
+// It should also have access to our Openshift Cluster to push images
+// The resource lock will be based on this OC access
+def cn_oc_client = params.cn_oc_client
+def cn_oc_session_resource = params.cn_oc_session_resource
+def cn_oc_credentials = params.cn_oc_credentials
+
+// Location of the gNB node
+def gnb_server = params.gnb_server
+def gnb_resource = params.gnb_resource
+
+// Location of the COTS UE control node
+def ue_ctl_server = params.ue_ctl_server
+def ue_ctl_resource = params.ue_ctl_resource
+
+oc_registry_url = 'https://default-route-openshift-image-registry.apps.oai.cs.eurecom.fr'
+oc_project_name = 'oaicicd-core'
+
+// Variables that can used in main pipeline and in functions
+NRF=0
+AMF=1
+SMF=2
+UPF=3
+AUSF=4
+UDM=5
+UDR=6
+
+imageNames = ["oai-nrf", "oai-amf", "oai-smf", "oai-upf", "oai-ausf", "oai-udm", "oai-udr"]
+repoNames = ["oai-cn5g-nrf", "oai-cn5g-amf", "oai-cn5g-smf", "oai-cn5g-upf", "oai-cn5g-ausf", "oai-cn5g-udm", "oai-cn5g-udr"]
+// Branch Names and BaseTags should be configured by default with develop values
+// In pipeline configuration
+// In case of a upstream event, the parent pipeline should provide different values
+branchNames = ["", "", "", "", "", "", ""]
+baseTags = ["", "", "", "", "", "", ""]
+destTags = ["", "", "", "", "", "", ""]
+chartKeyTags = ["NRF_TAG", "AMF_TAG", "SMF_TAG", "UPF_TAG", "AUSF_TAG", "UDM_TAG", "UDR_TAG"]
+containerInPods = ["nrf", "amf", "smf", "upf", "ausf", "udm", "udr"]
+
+// Status booleans
+boolean logoutToDo   = false
+boolean deployedCore = false
+boolean deployedGNB  = false
+boolean analysisToDo = true
+boolean coreDeploy   = true
+boolean gnbDeploy    = true
+boolean testStart0   = true
+boolean testStart1   = true
+boolean testStop0    = true
+boolean testStop1    = true
+
+//-------------------------------------------------------------------------------
+// Pipeline start
+pipeline {
+  agent {
+    label cn_oc_client
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    lock(extra: [[resource: gnb_resource]], resource: cn_oc_session_resource)
+  }
+  stages {
+    stage ('Verify Parameters') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+          sh "git clean -x -d -ff > /dev/null 2>&1"
+          sh "git submodule foreach --recursive 'git clean -x -d -ff' > /dev/null 2>&1"
+          sh "git submodule deinit --force --all > /dev/null 2>&1"
+          sh "git submodule update --init --recursive ci-scripts/common"
+          sh "mkdir -p archives"
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            if (ii == NRF) {
+              branchNames[NRF] = params.NRF_BRANCH
+              baseTags[NRF] = params.NRF_TAG
+            }
+            if (ii == AMF) {
+              branchNames[AMF] = params.AMF_BRANCH
+              baseTags[AMF] = params.AMF_TAG
+            }
+            if (ii == SMF) {
+              branchNames[SMF] = params.SMF_BRANCH
+              baseTags[SMF] = params.SMF_TAG
+            }
+            if (ii == UPF) {
+              branchNames[UPF] = params.UPF_BRANCH
+              baseTags[UPF] = params.UPF_TAG
+            }
+            if (ii == AUSF) {
+              branchNames[AUSF] = params.AUSF_BRANCH
+              baseTags[AUSF] = params.AUSF_TAG
+            }
+            if (ii == UDM) {
+              branchNames[UDM] = params.UDM_BRANCH
+              baseTags[UDM] = params.UDM_TAG
+            }
+            if (ii == UDR) {
+              branchNames[UDR] = params.UDR_BRANCH
+              baseTags[UDR] = params.UDR_TAG
+            }
+            if ((branchNames[ii] == "develop") && (baseTags[ii] == "develop")) {
+              destTags[ii] = getLastCommitFromBranch(ii, repoNames[ii], branchNames[ii])
+              baseTags[ii] = getCorrectBaseTag(imageNames[ii], destTags[ii])
+            } else {
+              destTags[ii] = baseTags[ii]
+            }
+          }
+          // Checking if all needed images are on cetautomatix to be pushed
+          imageStatus = 0
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            imageStatus += checkImageInfo(imageNames[ii], baseTags[ii])
+          }
+          if (imageStatus > 0) {
+            coreDeploy   = false
+            gnbDeploy    = false
+            testStart0   = false
+            testStart1   = false
+            testStop0    = false
+            testStop1    = false
+            error ("Some images are not present!")
+          }
+        }
+      }
+    }
+    stage ('Deploy Core on Cluster') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mDeploy Core on Cluster\u001B[0m'
+          withCredentials([
+            [$class: 'UsernamePasswordMultiBinding', credentialsId: "${params.cn_oc_credentials}", usernameVariable: 'OC_Username', passwordVariable: 'OC_Password']
+          ]) {
+            sh "oc login -u ${OC_Username} -p ${OC_Password}"
+            sh "oc whoami -t | sudo podman login -u ${OC_Username} --password-stdin ${oc_registry_url} --tls-verify=false"
+            logoutToDo = true
+          }
+          sh "oc project ${oc_project_name}"
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            pushToOpenshiftRegistry (imageNames[ii], baseTags[ii], destTags[ii])
+            appendImageInfo(imageNames[ii], destTags[ii])
+          }
+          // Checking that will-be-used tags have been pushed
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            sh "oc describe is ${imageNames[ii]} | grep ${destTags[ii]}"
+          }
+          // Putting the new tags in charts
+          // Let's work now in the basic chart folder
+          dir ('ci-scripts/charts/oai-5g-basic') {
+            for (ii = 0; ii < imageNames.size(); ii++) {
+              sh "sed -i 's/${chartKeyTags[ii]}/${destTags[ii]}/g' values.yaml"
+            }
+            sh "helm dependency update"
+            deployedCore = true
+            // Normally spray should time out at 5 minutes. Just being cautious
+            // helm spray --timeout 300 .
+            timeout (8) {
+              sh "helm install oai5gcn ."
+            }
+          }
+          sh "oc describe pod &> archives/describe-pods.logs"
+          sh "oc get pods -o wide"
+          sleep 60
+          sh "oc describe pod &>> archives/describe-pods.logs"
+          sh "oc get pods -o wide"
+          coreStatus = checkCoreNetworkDeployment()
+          if (coreStatus > 0) {
+            error ('Core Deployment went wrong')
+          }
+        }
+      }
+      post {
+        success {
+          script {
+            coreDeploy = true
+          }
+        }
+        unsuccessful {
+          script {
+            // In case the spray command fails, to have some context.
+            sh "oc describe pod &> archives/describe-pods.logs"
+            sh "oc get pods -o wide"
+            coreDeploy   = false
+            gnbDeploy    = false
+            testStart0   = false
+            testStart1   = false
+            testStop0    = false
+            testStop1    = false
+          }
+        }
+      }
+    }
+    stage ('Deploy gNB') {
+      agent { label gnb_server }
+      steps {
+        script {
+          echo '\u2705 \u001B[32mDeploy gNB\u001B[0m'
+          // As mentioned in the job configuration
+          // FULL_RAN_TAG shall be of "pullable" image format
+          // either porcepix.sboai.cs.eurecom.fr/oai-gnb:ci-tag
+          // or     oaisoftwarealliance/oai-gnb:week-tag
+          // It may temporarly be of porcepix.sboai.cs.eurecom.fr/oai-gnb:raphael/ci-fix-ubuntu-build-log-scheme-24efc76d format
+          //   the raphael/ part shall be fixed to raphael-
+          ranFullImage = fixFullRanImageTag(params.FULL_RAN_TAG)
+          checkAndPullRanImage(ranFullImage)
+          sh 'mkdir -p archives'
+          sh "echo 'Tested Tag is ${ranFullImage}' > archives/oai-gnb-image-info.log"
+          sh "docker image inspect --format='Date = {{.Created}}' ${ranFullImage} >> archives/oai-gnb-image-info.log"
+          sh "docker image inspect --format='Size = {{.Size}} bytes' ${ranFullImage} >> archives/oai-gnb-image-info.log"
+          sh "echo 'OC Pushed Tag is N/A' >> archives/oai-gnb-image-info.log"
+          stash allowEmpty: true, includes: 'archives/oai-gnb-image-info.log', name: 'gNB_image'
+          // Check for entrypoint content (until 2023.w22)
+          sh "docker create --name test-entrypoint ${ranFullImage}"
+          sh "docker cp test-entrypoint:/opt/oai-gnb/bin/entrypoint.sh gnb-entrypoint.sh"
+          sh "docker rm -f test-entrypoint"
+          entryContent = sh returnStdout: true, script: "cat gnb-entrypoint.sh"
+          mountedFileAsMountedDotConf = entryContent.contains('create sed expressions for substituting each occurrence')
+          sh "rm -f gnb-entrypoint.sh"
+          // Adding capture on SCTP and L2 port 9999
+          sh "sudo rm -f /tmp/oai-gnb-l2-trace.pcap /tmp/oai-gnb-l2-trace.logs"
+          sh 'nohup sudo tshark -i any -f "sctp or udp port 9999" -w /tmp/oai-gnb-l2-trace.pcap > /tmp/oai-gnb-l2-trace.logs 2>&1 &'
+          sleep 2
+          // Deploying now
+          dir ('ci-scripts/docker-compose/gnb-ci-testbed') {
+            sh "sed -i -e 's@image: oaisoftwarealliance/oai-gnb:develop@image: ${ranFullImage}@' docker-compose.yml"
+            if (mountedFileAsMountedDotConf) {
+              sh "sed -i -e 's@/opt/oai-gnb/etc/gnb.conf@/opt/oai-gnb/etc/mounted.conf@' docker-compose.yml"
+            }
+            sh "docker-compose up -d"
+            deployedGNB = true
+            gNBStatus = checkStatusOnGNB()
+            if (gNBStatus > 0) {
+              error ("gNB did NOT deploy properly")
+            }
+          }
+        }
+      }
+      post {
+        success {
+          script {
+            gnbDeploy    = true
+          }
+        }
+        unsuccessful {
+          script {
+            sh "sudo pkill tshark || true"
+            sleep 2
+            sh "sudo chmod 666 /tmp/oai-gnb-l2-trace.* || true"
+            dir ('ci-scripts/docker-compose/gnb-ci-testbed') {
+              sh "docker-compose stop -t 3 || true"
+              sleep 2
+              sh "docker logs sa-b210-gnb > oai-gnb.logs 2>&1 || true"
+              sh "cp /tmp/oai-gnb-l2-trace.* . || true"
+              sh "sudo rm -f /tmp/oai-gnb-l2-trace.*"
+              stash allowEmpty: true, includes: 'oai-gnb.logs, oai-gnb-l2-trace.*', name: 'gNB_logs'
+              sh "docker-compose down -t 3 || true"
+            }
+            deployedGNB  = false
+            gnbDeploy    = false
+            testStart0   = false
+            testStart1   = false
+            testStop0    = false
+            testStop1    = false
+            if (ranFullImage.contains('porcepix')) {
+              sh "docker rmi ${ranFullImage} || true"
+            }
+          }
+        }
+      }
+    }
+    stage ('Test COTS-UE') {
+      agent { label ue_ctl_server }
+      steps {
+        lock(ue_ctl_resource) {
+          script {
+            echo '\u2705 \u001B[32mTest COTS-UE\u001B[0m'
+            sh 'mkdir -p archives'
+            dir ('ci-scripts/cots-ue-mbim-scripts') {
+              // I don't want that stage to fail.
+              // It's easier then to un-deploy gNB.
+              try {
+                sh 'sudo bash -c "set -o pipefail && ./start.sh 2>&1 | tee /tmp/test-start0.log"'
+              } catch (Exception e) {
+                echo "Test-Start #0 seems to have failed!"
+                testStart0 = false
+              }
+              if (testStart0) {
+                sh 'sudo traceroute -4 -T -i wwan0 openairinterface.org | tee /tmp/test-traffic0.log'
+                sh 'curl --interface wwan0 https://openairinterface.org/wp-content/uploads/2015/06/cropped-oai_final_logo.png -o /tmp/test-oai_final_logo.png'
+              }
+              try {
+                sh 'sudo bash -c "set -o pipefail && ./stop.sh 2>&1 | tee /tmp/test-stop0.log"'
+              } catch (Exception e) {
+                echo "Test-Stop #0 seems to have failed!"
+                testStop0 = false
+              }
+              sleep 5
+              try {
+                sh 'sudo bash -c "set -o pipefail && ./start.sh 2>&1 | tee /tmp/test-start1.log"'
+              } catch (Exception e) {
+                echo "Test-Start #1 seems to have failed!"
+                testStart1 = false
+              }
+              try {
+                sh 'sudo bash -c "set -o pipefail && ./stop.sh 2>&1 | tee /tmp/test-stop1.log"'
+              } catch (Exception e) {
+                echo "Test-Stop #1 seems to have failed!"
+                testStop1 = false
+              }
+            }
+            sh 'sudo chmod 666 /tmp/test-st*.log'
+            sh 'cp -f /tmp/test-*.log /tmp/test-*.png archives || true'
+            sh 'sudo rm -f /tmp/test-*.log /tmp/test-*.png || true'
+            stash allowEmpty: true, includes: 'archives/*.*', name: 'ue_logs'
+          }
+        }
+      }
+    }
+    stage ('Undeploy gNB') {
+      agent { label gnb_server }
+      steps {
+        script {
+          echo '\u2705 \u001B[32mUndeploy gNB\u001B[0m'
+          if (deployedGNB) {
+            sh "sudo pkill tshark || true"
+            sleep 2
+            sh "sudo chmod 666 /tmp/oai-gnb-l2-trace.* || true"
+            dir ('ci-scripts/docker-compose/gnb-ci-testbed') {
+              ranFullImage = fixFullRanImageTag(params.FULL_RAN_TAG)
+              sh "sed -i -e 's@image: oaisoftwarealliance/oai-gnb:develop@image: ${ranFullImage}@' docker-compose.yml"
+              sh "docker-compose stop -t 3 || true"
+              sleep 2
+              sh "docker logs sa-b210-gnb > oai-gnb.logs 2>&1 || true"
+              sh "cp /tmp/oai-gnb-l2-trace.* . || true"
+              sh "sudo rm -f /tmp/oai-gnb-l2-trace.*"
+              stash allowEmpty: true, includes: 'oai-gnb.logs, oai-gnb-l2-trace.*', name: 'gNB_logs'
+              sh "docker-compose down -t 3 || true"
+            }
+            deployedGNB = false
+            if (ranFullImage.contains('porcepix')) {
+              sh "docker rmi ${ranFullImage} || true"
+            }
+          }
+        }
+      }
+    }
+    stage ('Undeploy Core on Cluster') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mUndeploy Core on Cluster\u001B[0m'
+          retrieveLogsFromPods()
+          unstash 'ue_logs'
+          unstash 'gNB_image'
+          unstash 'gNB_logs'
+          if (fileExists('oai-gnb.logs')) {
+            sh 'mv oai-gnb.logs archives'
+          }
+          if (fileExists('oai-gnb-l2-trace.pcap')) {
+            sh 'mv oai-gnb-l2-trace.* archives'
+          }
+          dir ('ci-scripts/charts/oai-5g-basic') {
+            sh 'helm uninstall $(helm list -aq)'
+            // Let's do later a script to check.
+            sleep 20
+            sh "oc get pods -o wide"
+            deployedCore = false
+          }
+          sh "sudo podman logout ${oc_registry_url}"
+          sh 'oc logout'
+          logoutToDo = false
+        }
+      }
+    }
+    stage ('Post-Run Analysis') {
+      steps {
+        script {
+          analysisToDo = false
+          OPTIONS=''
+          if (coreDeploy == false) {
+            OPTIONS += ' --core_deploy_failed'
+          }
+          if (gnbDeploy == false) {
+            OPTIONS += ' --gnb_deploy_failed'
+          }
+          if (testStart0 == false) {
+            OPTIONS += ' --ue_test0_start_failed'
+          }
+          if (testStop0 == false) {
+            OPTIONS += ' --ue_test0_stop_failed'
+          }
+          if (testStart1 == false) {
+            OPTIONS += ' --ue_test1_start_failed'
+          }
+          if (testStop1 == false) {
+            OPTIONS += ' --ue_test1_stop_failed'
+          }
+          // The python script may return an error
+          sh " ./ci-scripts/checkCOTS-UE-Testing.py --job_name ${JOB_NAME} --job_id ${BUILD_ID} --job_url ${BUILD_URL}${OPTIONS}"
+        }
+      }
+    }
+  }
+  post {
+    cleanup {
+      script {
+        if (deployedGNB) {
+          echo "Something went wrong! gNB should have been un-deployed"
+        }
+        if (deployedCore) {
+          retrieveLogsFromPods()
+          try {
+            unstash 'gNB_image'
+            unstash 'gNB_logs'
+            unstash 'ue_logs'
+          } catch (Exception e) {
+            echo "could not retrieve stashes from gNB or UE server"
+          }
+          if (fileExists('oai-gnb.logs')) {
+            sh 'mv oai-gnb.logs archives'
+          }
+          dir ('ci-scripts/charts/oai-5g-basic') {
+            sh 'helm uninstall $(helm list -aq)'
+            sleep 20
+          }
+        }
+        if (logoutToDo) {
+          sh "sudo podman logout ${oc_registry_url}"
+          sh 'oc logout'
+        }
+        sh 'zip -r cn5g_cots_ue_test_logs.zip archives'
+        if (fileExists('cn5g_cots_ue_test_logs.zip')) {
+          archiveArtifacts artifacts: 'cn5g_cots_ue_test_logs.zip'
+        }
+        if (analysisToDo) {
+          OPTIONS=''
+          if (coreDeploy == false) {
+            OPTIONS += ' --core_deploy_failed'
+          }
+          if (gnbDeploy == false) {
+            OPTIONS += ' --gnb_deploy_failed'
+          }
+          if (testStart0 == false) {
+            OPTIONS += ' --ue_test0_start_failed'
+          }
+          if (testStop0 == false) {
+            OPTIONS += ' --ue_test0_stop_failed'
+          }
+          if (testStart1 == false) {
+            OPTIONS += ' --ue_test1_start_failed'
+          }
+          if (testStop1 == false) {
+            OPTIONS += ' --ue_test1_stop_failed'
+          }
+          try {
+            sh " ./ci-scripts/checkCOTS-UE-Testing.py --job_name ${JOB_NAME} --job_id ${BUILD_ID} --job_url ${BUILD_URL}${OPTIONS}"
+          } catch (Exception e) {
+            echo "We've alreay failed the pipeline if we are here"
+          }
+        }
+        if (fileExists('test_results_oai_cn5g_cots_ue.html')) {
+          archiveArtifacts artifacts: 'test_results_oai_cn5g_cots_ue.html'
+        }
+      }
+    }
+  }
+}
+
+def getLastCommitFromBranch(index, repoName, branchName) {
+  echo "Checking on GitLab"
+  shaone = sh returnStdout: true, script: "curl --silent 'https://gitlab.eurecom.fr/api/v4/projects/oai%2Fcn5g%2F${repoName}/repository/branches/${branchName}' | jq .commit.id"
+  shaone = shaone.trim()
+  shaone = shaone.replaceAll('"','')
+  shaone = shaone.take(8)
+  return "${branchName}-${shaone}"
+}
+
+def getCorrectBaseTag(imageName, destTag) {
+  baseTag = "develop"
+  try {
+    sh "sudo podman images | grep ${imageName} | grep ${destTag}"
+    baseTag = destTag
+  } catch (Exception e) {
+    echo "Still using develop as base tag"
+  }
+  return baseTag
+}
+
+def checkImageInfo (imageName, origTag) {
+  status = 0
+  sh "echo 'Tested Tag is ${imageName}:${origTag}' > archives/${imageName}-image-info.log"
+  try {
+    sh "sudo podman image inspect --format='Size = {{.Size}} bytes' ${imageName}:${origTag} >> archives/${imageName}-image-info.log"
+    sh "sudo podman image inspect --format='Date = {{.Created}}' ${imageName}:${origTag} >> archives/${imageName}-image-info.log"
+  } catch (Exception e) {
+    echo "${imageName} Image tag to test (${imageName}:${origTag} does not exist!"
+    status = 1
+  }
+  return status
+}
+
+def appendImageInfo (imageName, destTag) {
+  sh "echo 'OC Pushed Tag is ${imageName}:${destTag}' >> archives/${imageName}-image-info.log"
+}
+
+def pushToOpenshiftRegistry (imageName, origTag, destTag) {
+  noHttpsURL = oc_registry_url.replaceAll("https://", "")
+  sh "sudo podman rmi ${noHttpsURL}/${oc_project_name}/${imageName}:${destTag} || true"
+  sh "sudo podman image tag ${imageName}:${origTag} ${noHttpsURL}/${oc_project_name}/${imageName}:${destTag}"
+  cnt = 0
+  while (cnt < 4) {
+    try {
+      sh "sudo podman push --tls-verify=false ${noHttpsURL}/${oc_project_name}/${imageName}:${destTag}"
+      cnt = 10
+    } catch (Exception e) {
+      echo "Network issue when pushing? Trying again!"
+      cnt += 1
+    }
+  }
+  sh "sudo podman rmi ${noHttpsURL}/${oc_project_name}/${imageName}:${destTag} || true"
+  if (cnt != 10) {
+    error "Could not push"
+  }
+}
+
+def checkCoreNetworkDeployment() {
+  status = 0
+  sh 'mkdir -p archives'
+  // Changes for HTTP/2
+  nrf_url = sh returnStdout: true, script: 'oc get svc oai-nrf -o json | jq -r ".status.loadBalancer.ingress[0].ip"'
+  nrf_url = nrf_url.trim()
+  echo "nrf_url = ${nrf_url}"
+  // Only AMF, SMF and UPF are registered to NRF
+  // AUSF, UDM and UDR in the charts are not-configured to register
+  AMF_namf = sh returnStdout: true, script: "curl -s --http2-prior-knowledge -X GET 'http://${nrf_url}/nnrf-nfm/v1/nf-instances?nf-type=AMF' | jq -r ._links.item[0].href 2>&1 | tee archives/amf-nf-registration.log"
+  AMF_namf = AMF_namf.trim()
+  SMF_nsmf = sh returnStdout: true, script: "curl -s --http2-prior-knowledge -X GET 'http://${nrf_url}/nnrf-nfm/v1/nf-instances?nf-type=SMF' | jq -r ._links.item[0].href 2>&1 | tee archives/smf-nf-registration.log"
+  SMF_nsmf = SMF_nsmf.trim()
+  UPF_nupf = sh returnStdout: true, script: "curl -s --http2-prior-knowledge -X GET 'http://${nrf_url}/nnrf-nfm/v1/nf-instances?nf-type=UPF' | jq -r ._links.item[0].href 2>&1 | tee archives/upf-nf-registration.log"
+  UPF_nupf = UPF_nupf.trim()
+  if ((AMF_namf.length() > 0) && (SMF_nsmf.length() > 0) && (UPF_nupf.length() > 0)) {
+    echo "All NF registered to NRF"
+  } else {
+    echo "Some NF did NOT registered to NRF"
+    status += 1
+  }
+
+  // Checking the PFCP heart-beat w/ SMF
+  UPF_POD = sh returnStdout: true, script: "oc get pods | grep oai-upf | awk {'print \$1'}"
+  UPF_POD = UPF_POD.trim()
+  UPF_log1 = sh returnStdout: true, script: "oc logs ${UPF_POD} upf | grep 'Received SX HEARTBEAT REQUEST' 2>&1 | tee archives/upf_pcfp_heartbeat.log"
+  UPF_log1 = UPF_log1.trim()
+  UPF_log2 = sh returnStdout: true, script: "oc logs ${UPF_POD} upf | grep 'handle_receive(16 bytes)' 2>&1 | tee -a archives/upf_pcfp_heartbeat.log"
+  UPF_log2 = UPF_log2.trim()
+  if ((UPF_log1.length() > 0) && (UPF_log2.length() > 0)) {
+    echo "PFCP association / heartbeat seems OK"
+  } else {
+    echo "PFCP association KO"
+    status += 2
+  }
+  sleep 30
+  return status
+}
+
+def retrieveLogsFromPods() {
+  sh "mkdir -p archives"
+  for (ii = 0; ii < imageNames.size(); ii++) {
+    podName = sh returnStdout: true, script: "oc get pods | grep ${imageNames[ii]} | awk {'print \$1'} || true"
+    podName = podName.trim()
+    if (ii == NRF) {
+      nrfPod = podName
+    }
+    try {
+      sh "oc logs ${podName} ${containerInPods[ii]} &> archives/${imageNames[ii]}.logs"
+    } catch (Exception e) {
+      echo "Getting logs from ${podName} failed"
+    }
+  }
+  // Retrieving mysql logs
+  podName = sh returnStdout: true, script: "oc get pods | grep mysql | awk {'print \$1'} || true"
+  podName = podName.trim()
+  try {
+    sh "oc logs ${podName} &> archives/mysql.logs"
+  } catch (Exception e) {
+    echo "Getting logs from ${podName} failed"
+  }
+  sh "oc describe pod &> archives/describe-pods-post-test.logs"
+  sh "oc get pods.metrics.k8s.io &> archives/nf-resource-consumption.log"
+  if (nrfPod.contains("oai-nrf")) {
+    sh "oc rsync ${nrfPod}:/pcap archives"
+  }
+}
+
+def fixFullRanImageTag (ranFullImage) {
+  // if format is porcepix.sboai.cs.eurecom.fr/oai-gnb:raphael/ci-fix-ubuntu-build-log-scheme-24efc76d
+  if (ranFullImage.contains('porcepix')) {
+    def arr = ranFullImage.split(':')
+    arr[1] = arr[1].replaceAll('/', '-')
+    ranFullImage = arr[0] + ':' + arr[1]
+  }
+  return ranFullImage
+}
+
+def checkAndPullRanImage (ranFullImage) {
+  imageToPull = false
+  try {
+    echo "Checking if RAN image is present on test server"
+    sh "docker image inspect --format='Date = {{.Created}}' ${ranFullImage}"
+    sh "docker image inspect --format='Size = {{.Size}} bytes' ${ranFullImage}"
+  } catch (Exception e) {
+    echo "Image is not present --> pulling it"
+    imageToPull = true
+  }
+  if (imageToPull) {
+    if (ranFullImage.contains('porcepix')) {
+      sh 'docker login -u oaicicd -p oaicicd porcepix.sboai.cs.eurecom.fr'
+    }
+    sh "docker pull ${ranFullImage}"
+    if (ranFullImage.contains('porcepix')) {
+      sh 'docker logout porcepix.sboai.cs.eurecom.fr'
+    }
+  }
+}
+
+def checkStatusOnGNB() {
+  status = 0
+  sh "docker-compose ps --all"
+  cnt = 0
+  while (cnt < 10) {
+    psStatus = sh returnStdout: true, script: "docker-compose ps --all"
+    if (psStatus.contains('(healthy)')) {
+      cnt = 30
+      echo "gNB container is healthy"
+    } else {
+      cnt += 1
+      sleep 2
+    }
+  }
+  if (cnt != 30) {
+    status += 1
+  }
+  cnt = 0
+  while (cnt < 10) {
+    syncStatus = sh returnStdout: true, script: "docker logs sa-b210-gnb 2>&1 | grep sync || true"
+    if (syncStatus.contains('got sync')) {
+      echo "gNB radio is ready"
+      cnt = 30
+    } else {
+      cnt += 1
+      sleep 2
+    }
+  }
+  if (cnt != 30) {
+    status += 4
+  }
+  amfStatus = sh returnStdout: true, script: "docker logs sa-b210-gnb 2>&1 | grep 'Received NGAP_REGISTER_GNB_CNF' || true"
+  if (amfStatus.contains('Received NGAP_REGISTER_GNB_CNF: associated AMF 1')) {
+    echo "gNB is connected to AMF"
+  } else {
+    status += 2
+  }
+  return status
+}

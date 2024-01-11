@@ -1,0 +1,101 @@
+kubernetesType: Openshift  #Vanilla for community kubernetes distribution
+
+nfimage:
+  repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-smf  # dockerhub oaisoftwarealliance/oai-smf
+  version: SMF_TAG    #image tag, develop tag for experimental features 
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+tcpdumpimage:
+  repository: support-tools
+  version: 8.7-8
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+initContainer:
+  repository: docker.io/alpine/curl
+  version: 3.14
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+# good to use when pulling images from docker-hub mention for RHEL images it can be commented
+#imagePullSecrets: 
+#  - name: "regcred"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "oai-smf-sa"
+
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+securityContext:
+  capabilities:
+    add:
+     - NET_ADMIN
+    drop:
+     - ALL
+  privileged: true
+
+#service type is fixed to clusterIP, it is only support for non multus interface (eth0)
+
+# Just for debugging
+start:
+  smf: true
+  tcpdump: true  #start tcpdump collection to analyse but beware it will take a lot of space in the container/persistent volume
+
+# SMF needs two seperate interface one for http and other one for N4 to communicate with UPD. 
+# But for experimentation only one interface can be used. 
+# When you need multus:
+# 1. you want seperate interface for N4 and Nsmf 
+# 2. Your UPF is outside the cluster and the host machine can communicate but pods can not then you can provide ip-address in the same range as your host machine
+# 3. You want static ip-address for N4 interface, Namf can be discovered by its service name
+
+multus:
+  create: false
+  n4IPadd: "172.21.6.202"
+  n4Netmask: "22"
+  n4Gateway: "172.21.7.254"
+  hostInterface: "bond0"      # Interface of the host machine on which this pod will be scheduled
+
+config:
+  nrfFqdn: "oai-nrf" # configure if NRF can be reached using Kubernetes service
+  smfInterfacePortForSBI: 80
+  smfInterfaceHttp2PortForSBI: 8080
+
+## currently only used by tcpdump container to store the tcpdump, this volume will be shared between all the network functions (If true it should be true for all the NFs specially NRF)
+persistent:
+  sharedvolume: true  # should be true when if wants to store the tcpdump of all the network functions at same place
+  volumneName: nfs-client
+  size: 1Gi
+
+
+resources:
+  define: false
+  limits:
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
+    nf:
+      cpu: 100m
+      memory: 128Mi
+  requests:
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
+    nf:
+      cpu: 100m
+      memory: 128Mi
+
+readinessProbe: true
+livenessProbe: false
+
+terminationGracePeriodSeconds: 5
+
+nodeSelector: {}
+
+nodeName: dedale

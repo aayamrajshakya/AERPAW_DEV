@@ -1,0 +1,66 @@
+Generating config file...
+Reading environment variables
+Renaming Host Interfaces
+Done generating the config files
+waiting for vpp-upf service
+
+clib_socket_init: connect (fd 3, '/run/vpp/cli.sock'): No such file or directory0: vlib_sort_init_exit_functions:160: order constraint fcn 'dns_init' not found
+waiting for vpp-upf service
+
+clib_socket_init: connect (fd 3, '/run/vpp/cli.sock'): No such file or directory0: vnet_feature_arc_init:271: feature node 'acl-plugin-out-ip6-fa' not found (before 'ip6-dvr-reinject', arc 'ip6-output')
+0: vnet_feature_arc_init:271: feature node 'nat44-in2out-output' not found (before 'ip4-dvr-reinject', arc 'ip4-output')
+0: vnet_feature_arc_init:271: feature node 'acl-plugin-out-ip4-fa' not found (before 'ip4-dvr-reinject', arc 'ip4-output')
+waiting for vpp-upf service
+
+clib_socket_init: connect (fd 3, '/run/vpp/cli.sock'): No such file or directory0: linux_epoll_file_update:120: epoll_ctl: Operation not permitted (errno 1)
+0: upf_nwi_add_del_command_fn:383: table 1 not (yet) defined for IPv6
+0: upf_nwi_add_del_command_fn:383: table 2 not (yet) defined for IPv6
+waiting for vpp-upf service
+16
+vpp-upf service is running now
+UUID is exported: 079e4e90-9617-4cdb-ae10-b49f4802392a
+NRF_URL is 192.168.70.130:8080/nnrf-nfm/v1/nf-instances/079e4e90-9617-4cdb-ae10-b49f4802392a
+Sending NF Registration Request (HTTP Version 2)
+curl command options are: --http2-prior-knowledge --write-out %{http_code} --silent --output /dev/null -X PUT 192.168.70.130:8080/nnrf-nfm/v1/nf-instances/079e4e90-9617-4cdb-ae10-b49f4802392a -d @/openair-upf/etc/upf_profile.json -H "Content-Type: application/json" -H "Expect:"
+Received NF registration response (HTTP_STATUS_CODE_200/201)
+
+Sending NF heartbeat request
+curl command options are: --http2-prior-knowledge --write-out %{http_code} --silent --output /dev/null -X PATCH 192.168.70.130:8080/nnrf-nfm/v1/nf-instances/079e4e90-9617-4cdb-ae10-b49f4802392a -d [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}] -H "Content-Type: application/json" -H "Expect:"
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+
+Sending NF heartbeat request
+Received NF heartbeat response (HTTP_STATUS_CODE_204)
+

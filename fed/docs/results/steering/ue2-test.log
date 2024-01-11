@@ -1,0 +1,14 @@
+traceroute to 1.1.1.1 (1.1.1.1), 30 hops max, 60 byte packets
+ 1  * * *
+ 2  192.168.74.135 (192.168.74.135)  1.323 ms  1.351 ms  1.356 ms
+ 3  rohan (192.168.73.1)  1.352 ms  1.337 ms  1.321 ms
+ 4  _gateway (192.168.107.1)  2.434 ms  2.336 ms  2.377 ms
+ 5  eurecom-gw.eurecom.fr (193.55.113.194)  2.363 ms  2.784 ms  2.686 ms
+ 6  gi0-0-0-6-ren-nr-sophia-rtr-091.noc.renater.fr (193.51.187.18)  3.156 ms  2.593 ms  2.489 ms
+ 7  xe-0-0-5-marseille1-rtr-131.noc.renater.fr (193.51.177.20)  5.320 ms  5.161 ms  5.097 ms
+ 8  xe-1-1-7-ren-nr-lyon1-rtr-131.noc.renater.fr (193.55.204.111)  8.499 ms xe-0-0-3-ren-nr-lyon1-rtr-131.noc.renater.fr (193.51.177.81)  8.128 ms xe-1-0-9-lyon1-rtr-131.noc.renater.fr (193.51.177.223)  8.013 ms
+ 9  renater-ias-geant-gw.gen.ch.geant.net (83.97.89.13)  23.074 ms  23.085 ms  22.845 ms
+10  ae2.mx1.fra.de.geant.net (62.40.98.180)  24.146 ms  23.976 ms  23.555 ms
+11  * * *
+12  162.158.108.2 (162.158.108.2)  24.782 ms 172.70.240.3 (172.70.240.3)  56.421 ms 172.69.148.3 (172.69.148.3)  24.122 ms
+13  one.one.one.one (1.1.1.1)  24.092 ms  24.046 ms  24.044 ms

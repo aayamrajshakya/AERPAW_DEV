@@ -1,0 +1,319 @@
+@INSTANCE@
+@PID_DIRECTORY@
+@UDM_NAME@
+@SBI_IF_NAME@
+@SBI_PORT@
+@UDM_VERSION_NB@
+@SBI_HTTP2_PORT@
+@USE_FQDN_DNS@
+@USE_HTTP2@
+@REGISTER_NRF@
+@UDR_IP_ADDRESS@
+@UDR_PORT@
+@UDR_VERSION_NB@
+@UDR_FQDN@
+@NRF_IPV4_ADDRESS@
+@NRF_PORT@
+@NRF_API_VERSION@
+@NRF_FQDN@
+[2023-01-18T13:48:49.444981] [udm] [udm_server] [start] Options parsed
+[2023-01-18T13:48:49.466399] [udm] [configurations] [info ] ==== OAI-CN5G UDM vBranch: HEAD Abrev. Hash: a4b8e9f Date: Mon Dec 19 10:53:00 2022 +0000 ====
+[2023-01-18T13:48:49.466408] [udm] [configurations] [info ] ============== UDM =============
+[2023-01-18T13:48:49.466409] [udm] [configurations] [info ] Configuration UDM:
+[2023-01-18T13:48:49.466411] [udm] [configurations] [info ] - Instance................: 0
+[2023-01-18T13:48:49.466411] [udm] [configurations] [info ] - PID Dir.................: /var/run
+[2023-01-18T13:48:49.466412] [udm] [configurations] [info ] - UDM name................: OAI_UDM
+[2023-01-18T13:48:49.466413] [udm] [configurations] [info ] - SBI:
+[2023-01-18T13:48:49.466414] [udm] [configurations] [info ]     Iface name............: eth0
+[2023-01-18T13:48:49.466415] [udm] [configurations] [info ]     IPv4 Addr.............: 192.168.70.137
+[2023-01-18T13:48:49.466416] [udm] [configurations] [info ]     HTTP1 Port ...........: 80
+[2023-01-18T13:48:49.466417] [udm] [configurations] [info ]     HTTP2 Port............: 8080
+[2023-01-18T13:48:49.466417] [udm] [configurations] [info ]     Api Version...........: v1
+[2023-01-18T13:48:49.466418] [udm] [configurations] [info ] - Supported Features:
+[2023-01-18T13:48:49.466419] [udm] [configurations] [info ]     REGISTER NRF ..  ......: Yes
+[2023-01-18T13:48:49.466420] [udm] [configurations] [info ]     Use FQDN ..............: Yes
+[2023-01-18T13:48:49.466421] [udm] [configurations] [info ]     Use HTTP2..............: No
+[2023-01-18T13:48:49.466422] [udm] [configurations] [info ] - UDR:
+[2023-01-18T13:48:49.466422] [udm] [configurations] [info ]     IPv4 Addr.............: 192.168.70.136
+[2023-01-18T13:48:49.466423] [udm] [configurations] [info ]     Port..................: 80  
+[2023-01-18T13:48:49.466424] [udm] [configurations] [info ]     API version...........: v1
+[2023-01-18T13:48:49.466425] [udm] [configurations] [info ] - NRF:
+[2023-01-18T13:48:49.466426] [udm] [configurations] [info ]     IPv4 Addr ............: 192.168.70.130
+[2023-01-18T13:48:49.466426] [udm] [configurations] [info ]     Port .................: 80  
+[2023-01-18T13:48:49.466427] [udm] [configurations] [info ]     API version ..........: v1
+[2023-01-18T13:48:49.466428] [udm] [configurations] [info ]     FQDN..................: oai-nrf
+[2023-01-18T13:48:49.466433] [udm] [udm_app] [start] Starting...
+[2023-01-18T13:48:49.466463] [udm] [udm_nrf] [info ] Sending NF registeration request
+[2023-01-18T13:48:49.466469] [udm] [udm_app] [info ] Send HTTP message with body {"capacity":100,"fqdn":"oai-udm","heartBeatTimer":50,"ipv4Addresses":["192.168.70.137"],"nfInstanceId":"07411562-f73b-4a6b-870d-785986503288","nfInstanceName":"OAI-UDM","nfStatus":"REGISTERED","nfType":"UDM","priority":1,"sNssais":[],"udmInfo":{"externalGroupIdentifiersRanges":[],"gpsiRanges":[{"end":"752749999","pattern":"^gpsi-75274[0-9]{4}$","start":"752740000"}],"groupId":"oai-udm-testgroupid","internalGroupIdentifiersRanges":[],"routingIndicators":["0210","9876"],"supiRanges":[{"end":"208950000000131","pattern":"^imsi-20895[31-131]{10}$","start":"208950000000031"}]}}
+[2023-01-18T13:48:49.467002] [udm] [udm_app] [info ] Got response with httpcode (201)
+[2023-01-18T13:48:49.467044] [udm] [udm_app] [info ] NRF TASK Created 
+[2023-01-18T13:48:49.467047] [udm] [udm_app] [start] Started
+[2023-01-18T13:48:49.467643] [udm] [udm_server] [info ] HTTP1 server started
+[2023-01-18T13:48:49.467665] [udm] [udm_server] [info ] HTTP2 server started
+[2023-01-18T13:48:59.479004] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:48:59.479039] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:48:59.529820] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:09.530996] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:09.531036] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:09.531586] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:19.594989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:19.595018] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:19.595495] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:28.714439] [udm] [udm_ueau] [info ] Handle generate_auth_data()
+[2023-01-18T13:49:28.714456] [udm] [udm_ueau] [info ] Handle Generate Auth Data Request
+[2023-01-18T13:49:28.714645] [udm] [udm_app] [info ] Send HTTP message with body 
+[2023-01-18T13:49:28.718650] [udm] [udm_app] [info ] Got response with httpcode (200)
+[2023-01-18T13:49:28.718695] [udm] [udm_ueau] [info ] Result For F1-Alg Key
+c a 34 60 1d 4f 7 67 73 3 65 2c 4 62 53 5b 
+[2023-01-18T13:49:28.718704] [udm] [udm_ueau] [info ] Result For F1-Alg OPC
+63 bf a5 e e6 52 33 65 ff 14 c1 f4 5f 88 73 7d 
+[2023-01-18T13:49:28.718708] [udm] [udm_ueau] [info ] Result For F1-Alg AMF
+80 0 
+[2023-01-18T13:49:28.718710] [udm] [udm_ueau] [info ] Result For F1-Alg SQN: 
+0 0 0 0 0 20 
+[2023-01-18T13:49:28.718750] [udm] [udm_ueau] [info ] Current SQN 000000000040
+97 62 9e 26 e5 a5 8f 73 fc 1a 8a 8 3e 4 b e8 
+9d 7b b1 66 2c 5c 6b 7d ce a4 c4 ae fd b6 e8 d8 
+97 62 9e 26 e5 a5 8f 73 fc 1a 8a 8 3e 4 b e8 
+1 d0 d5 9c 95 c6 ab 65 52 f a0 54 44 2c 28 c1 
+84 83 98 62 3c 43 c2 1f 33 4d 1e b7 9 b8 b2 a5 
+2d 6 f1 18 5d 1 7c fc 7e d9 84 d0 8c eb ff 5d 
+[2023-01-18T13:49:28.720635] [udm] [udm_ueau] [info ] XRES*(new)
+28 b c3 96 50 c4 13 dd 8b da eb cb bc 6 6d eb df f8 f9 65 5f 6f b3 ae 4d 86 a5 12 25 2d 5c 7b 
+[2023-01-18T13:49:28.720646] [udm] [udm_ueau] [info ] derive_kausf key
+68 e4 2 a4 eb ea c9 19 7c 96 bc 56 a 57 9c 5b ba 40 62 c4 f 7a d6 f3 8f fc b2 14 ed 3a cc 5e 
+[2023-01-18T13:49:28.720653] [udm] [udm_ueau] [info ] derive_kausf kausf
+33 7c 7e bf 9 ae f8 de 26 8d b6 c3 3d 38 bc f8 27 3f a9 92 b 5 c 79 5 d4 2d fe 23 ef 2a c6 
+[2023-01-18T13:49:28.720682] [udm] [udm_ueau] [info ] New SQN (for next round) = 000000000060
+[2023-01-18T13:49:28.720701] [udm] [udm_ueau] [info ] Update UDR with PATCH message, body:  [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:49:28.720705] [udm] [udm_app] [info ] Send HTTP message with body [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:49:28.723238] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:28.723256] [udm] [udm_ueau] [info ] Send 200 Ok response to AUSF
+[2023-01-18T13:49:28.723266] [udm] [udm_ueau] [info ] AuthInfoResult {"authType":"5G_AKA","authenticationVector":{"autn":"039db8bdc0498000d52c97d5d8ce1bbe","avType":"5G_HE_AKA","kausf":"337c7ebf09aef8de268db6c33d38bcf8273fa9920b050c7905d42dfe23ef2ac6","rand":"f8d70f481eb8bb71700d2ed065ee2bce","xresStar":"dff8f9655f6fb3ae4d86a512252d5c7b"}}
+[2023-01-18T13:49:28.723284] [udm] [udm_ueau] [info ] Send response to AUSF
+[2023-01-18T13:49:28.723355] [udm] [udm_ueau] [info ] Update sqn in Database
+[2023-01-18T13:49:28.726340] [udm] [udm_ueau] [info ] Handle confirm_auth()
+[2023-01-18T13:49:28.726356] [udm] [udm_app] [info ] Send HTTP message with body 
+[2023-01-18T13:49:28.727094] [udm] [udm_app] [info ] Got response with httpcode (200)
+[2023-01-18T13:49:28.727141] [udm] [udm_app] [info ] Send HTTP message with body {"authRemovalInd":false,"authType":"5G_AKA","nfInstanceId":"400346f4-087e-40b1-a4cd-00566953999d","servingNetworkName":"5G:mnc095.mcc208.3gppnetwork.org","success":true,"timeStamp":"2023-01-18T12:49:28Z"}
+[2023-01-18T13:49:28.731127] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:28.731159] [udm] [udm_ueau] [info ] Send 201 Created response to AUSF
+[2023-01-18T13:49:28.731179] [udm] [udm_ueau] [info ] Send response to AUSF
+[2023-01-18T13:49:29.609991] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:29.610022] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:29.610538] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:39.610003] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:39.610048] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:39.610780] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:49.616002] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:49.616062] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:49.617107] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:49:59.623999] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:59.624054] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:59.625002] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:08.624280] [udm] [udm_ueau] [info ] Handle generate_auth_data()
+[2023-01-18T13:50:08.624307] [udm] [udm_ueau] [info ] Handle Generate Auth Data Request
+[2023-01-18T13:50:08.624324] [udm] [udm_app] [info ] Send HTTP message with body 
+[2023-01-18T13:50:08.626331] [udm] [udm_app] [info ] Got response with httpcode (200)
+[2023-01-18T13:50:08.626406] [udm] [udm_ueau] [info ] Result For F1-Alg Key
+c a 34 60 1d 4f 7 67 73 3 65 2c 4 62 53 5b 
+[2023-01-18T13:50:08.626419] [udm] [udm_ueau] [info ] Result For F1-Alg OPC
+63 bf a5 e e6 52 33 65 ff 14 c1 f4 5f 88 73 7d 
+[2023-01-18T13:50:08.626423] [udm] [udm_ueau] [info ] Result For F1-Alg AMF
+80 0 
+[2023-01-18T13:50:08.626427] [udm] [udm_ueau] [info ] Result For F1-Alg SQN: 
+0 0 0 0 0 20 
+[2023-01-18T13:50:08.626471] [udm] [udm_ueau] [info ] Current SQN 000000000040
+73 b1 ec d3 60 68 4f 6f eb 82 b6 18 bd 9f 92 53 
+8b 3a a0 8a c1 bb 99 21 79 11 72 2a 53 bc ae 8b 
+73 b1 ec d3 60 68 4f 6f eb 82 b6 18 bd 9f 92 53 
+17 91 c4 70 78 21 59 39 e5 ba 16 d0 ea 26 6e 92 
+69 64 6a 3e 8b f6 74 9b 9d 47 58 e4 1f f9 a3 49 
+9a b3 47 9c f3 b 3a af 68 98 95 3c 61 c d 1 
+[2023-01-18T13:50:08.627033] [udm] [udm_ueau] [info ] XRES*(new)
+47 7a 75 ea 52 25 93 12 29 98 e3 1b ff d1 19 df 69 53 28 ca 7 6e 2 af ba 50 46 dd ec c7 e8 61 
+[2023-01-18T13:50:08.627042] [udm] [udm_ueau] [info ] derive_kausf key
+f2 b6 39 1e e0 8c 78 7a 4d f1 ca f0 64 ef 74 7f 99 f2 9a b9 76 8d 20 5c f7 9c 6 d9 ec ea 69 23 
+[2023-01-18T13:50:08.627049] [udm] [udm_ueau] [info ] derive_kausf kausf
+91 b6 4d e2 ff c7 46 7c ac 5c 3b b4 1e e6 2b f5 88 2 66 a7 2a 65 ce b6 af 2f a2 d3 ee d6 d0 ca 
+[2023-01-18T13:50:08.627087] [udm] [udm_ueau] [info ] New SQN (for next round) = 000000000060
+[2023-01-18T13:50:08.627134] [udm] [udm_ueau] [info ] Update UDR with PATCH message, body:  [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:50:08.627139] [udm] [udm_app] [info ] Send HTTP message with body [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:50:08.635190] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:08.635268] [udm] [udm_ueau] [info ] Send 200 Ok response to AUSF
+[2023-01-18T13:50:08.635296] [udm] [udm_ueau] [info ] AuthInfoResult {"authType":"5G_AKA","authenticationVector":{"autn":"357dfb6f574b80005aef55bdc203cc82","avType":"5G_HE_AKA","kausf":"91b64de2ffc7467cac5c3bb41ee62bf5880266a72a65ceb6af2fa2d3eed6d0ca","rand":"1c047dbd9b757b6d679512c0e675b275","xresStar":"695328ca076e02afba5046ddecc7e861"}}
+[2023-01-18T13:50:08.635353] [udm] [udm_ueau] [info ] Send response to AUSF
+[2023-01-18T13:50:08.635434] [udm] [udm_ueau] [info ] Update sqn in Database
+[2023-01-18T13:50:08.644458] [udm] [udm_ueau] [info ] Handle confirm_auth()
+[2023-01-18T13:50:08.644490] [udm] [udm_app] [info ] Send HTTP message with body 
+[2023-01-18T13:50:08.645773] [udm] [udm_app] [info ] Got response with httpcode (200)
+[2023-01-18T13:50:08.645838] [udm] [udm_app] [info ] Send HTTP message with body {"authRemovalInd":false,"authType":"5G_AKA","nfInstanceId":"400346f4-087e-40b1-a4cd-00566953999d","servingNetworkName":"5G:mnc095.mcc208.3gppnetwork.org","success":true,"timeStamp":"2023-01-18T12:50:08Z"}
+[2023-01-18T13:50:08.662196] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:08.662292] [udm] [udm_ueau] [info ] Send 201 Created response to AUSF
+[2023-01-18T13:50:08.662347] [udm] [udm_ueau] [info ] Send response to AUSF
+[2023-01-18T13:50:09.669989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:09.670023] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:09.670518] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:19.685989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:19.686019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:19.686493] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:29.686989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:29.687022] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:29.687493] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:39.687988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:39.688023] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:39.688559] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:49.689988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:49.690021] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:49.690730] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:50:59.693989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:59.694019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:59.694476] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:01.356492] [udm] [udm_ueau] [info ] Handle generate_auth_data()
+[2023-01-18T13:51:01.356506] [udm] [udm_ueau] [info ] Handle Generate Auth Data Request
+[2023-01-18T13:51:01.356516] [udm] [udm_app] [info ] Send HTTP message with body 
+[2023-01-18T13:51:01.357589] [udm] [udm_app] [info ] Got response with httpcode (200)
+[2023-01-18T13:51:01.357622] [udm] [udm_ueau] [info ] Result For F1-Alg Key
+c a 34 60 1d 4f 7 67 73 3 65 2c 4 62 53 5b 
+[2023-01-18T13:51:01.357629] [udm] [udm_ueau] [info ] Result For F1-Alg OPC
+63 bf a5 e e6 52 33 65 ff 14 c1 f4 5f 88 73 7d 
+[2023-01-18T13:51:01.357633] [udm] [udm_ueau] [info ] Result For F1-Alg AMF
+80 0 
+[2023-01-18T13:51:01.357635] [udm] [udm_ueau] [info ] Result For F1-Alg SQN: 
+0 0 0 0 0 20 
+[2023-01-18T13:51:01.357650] [udm] [udm_ueau] [info ] Current SQN 000000000040
+72 f9 7b 74 2c 8f 2e fc 45 3a d8 1c cf b0 39 ad 
+73 88 eb b1 da fe 25 d1 ab 3f 23 e4 12 6d 7c 68 
+72 f9 7b 74 2c 8f 2e fc 45 3a d8 1c cf b0 39 ad 
+ef 23 8f 4b 63 64 e5 c9 37 94 47 1e ab f7 bc 71 
+72 21 d6 ce 59 d8 25 55 dc 96 8a 7 e7 4b e8 72 
+48 9d 16 52 b2 da e8 4c 90 2a de 7 7a 49 b1 f1 
+[2023-01-18T13:51:01.358033] [udm] [udm_ueau] [info ] XRES*(new)
+61 ac 61 2f 94 a7 57 e8 ca b6 46 7f 8d 88 63 ae 12 34 ec 54 cf 2e eb d 15 f3 ef 51 f9 76 ca cf 
+[2023-01-18T13:51:01.358038] [udm] [udm_ueau] [info ] derive_kausf key
+47 4c 61 fd a 7c bd 51 23 61 c9 75 2c bb 7 d9 29 e0 12 9a 0 25 5 66 f3 f5 ea aa 58 79 92 8f 
+[2023-01-18T13:51:01.358043] [udm] [udm_ueau] [info ] derive_kausf kausf
+44 12 7f fa b2 f7 ed 6e c2 76 52 b5 e9 41 64 2 5d 74 8c 26 53 29 d3 9f bb ab 9b aa 69 d5 d2 aa 
+[2023-01-18T13:51:01.358063] [udm] [udm_ueau] [info ] New SQN (for next round) = 000000000060
+[2023-01-18T13:51:01.358083] [udm] [udm_ueau] [info ] Update UDR with PATCH message, body:  [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:51:01.358086] [udm] [udm_app] [info ] Send HTTP message with body [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:51:01.360267] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:01.360279] [udm] [udm_ueau] [info ] Send 200 Ok response to AUSF
+[2023-01-18T13:51:01.360288] [udm] [udm_ueau] [info ] AuthInfoResult {"authType":"5G_AKA","authenticationVector":{"autn":"d3c3eb593e9e8000276bbcee3dfc0687","avType":"5G_HE_AKA","kausf":"44127ffab2f7ed6ec27652b5e94164025d748c265329d39fbbab9baa69d5d2aa","rand":"1d4cea1ad7921afec92d7cc4945a198b","xresStar":"1234ec54cf2eeb0d15f3ef51f976cacf"}}
+[2023-01-18T13:51:01.360309] [udm] [udm_ueau] [info ] Send response to AUSF
+[2023-01-18T13:51:01.360336] [udm] [udm_ueau] [info ] Update sqn in Database
+[2023-01-18T13:51:01.362067] [udm] [udm_ueau] [info ] Handle confirm_auth()
+[2023-01-18T13:51:01.362077] [udm] [udm_app] [info ] Send HTTP message with body 
+[2023-01-18T13:51:01.362547] [udm] [udm_app] [info ] Got response with httpcode (200)
+[2023-01-18T13:51:01.362580] [udm] [udm_app] [info ] Send HTTP message with body {"authRemovalInd":false,"authType":"5G_AKA","nfInstanceId":"400346f4-087e-40b1-a4cd-00566953999d","servingNetworkName":"5G:mnc095.mcc208.3gppnetwork.org","success":true,"timeStamp":"2023-01-18T12:51:01Z"}
+[2023-01-18T13:51:01.364055] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:01.364073] [udm] [udm_ueau] [info ] Send 201 Created response to AUSF
+[2023-01-18T13:51:01.364087] [udm] [udm_ueau] [info ] Send response to AUSF
+[2023-01-18T13:51:09.707989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:09.708018] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:09.708477] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:19.710998] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:19.711046] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:19.711735] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:29.723989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:29.724020] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:29.724519] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:39.734994] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:39.735040] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:39.735551] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:49.743997] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:49.744049] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:49.744739] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:51:59.744988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:59.745019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:59.745505] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:52:09.753989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:09.754019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:09.754501] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:52:19.756989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:19.757024] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:19.757491] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:52:29.759991] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:29.760022] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:29.760533] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:52:39.759988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:39.760021] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:39.760536] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:52:49.760990] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:49.761024] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:49.761497] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:52:59.760990] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:59.761032] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:59.761453] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:53:09.777012] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:09.777083] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:09.778117] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:53:19.778988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:19.779019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:19.779543] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:53:29.779990] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:29.780022] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:29.780584] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:53:39.788991] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:39.789022] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:39.789571] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:53:49.796990] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:49.797020] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:49.797458] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:53:59.797996] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:59.798042] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:59.798617] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:54:09.802990] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:09.803020] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:09.803559] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:54:19.802988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:19.803018] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:19.803477] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:54:29.804988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:29.805018] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:29.805584] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:54:39.807987] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:39.808017] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:39.808515] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:54:49.811993] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:49.812032] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:49.812660] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:54:59.817989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:59.818021] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:59.818503] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:55:09.837989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:09.838019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:09.838463] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:55:19.837995] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:19.838051] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:19.838748] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:55:29.838988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:29.839019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:29.839536] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:55:39.839988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:39.840019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:39.840508] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:55:49.842989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:49.843020] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:49.843560] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:55:59.844988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:59.845019] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:59.845517] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:56:09.851988] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:09.852018] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:09.852573] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:56:19.852989] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:19.853025] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:19.853512] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:56:29.858990] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:29.859021] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:29.859497] [udm] [udm_app] [info ] Got response with httpcode (204)
+[2023-01-18T13:56:39.859992] [udm] [udm_app] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:39.860025] [udm] [udm_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:39.860519] [udm] [udm_app] [info ] Got response with httpcode (204)
+Caught signal 15
+[2023-01-18T13:56:40.595479] [udm] [system ] [start] exiting
+Freeing Allocated memory...
+UDM API Server memory done
+UDM APP memory done
+Freeing allocated memory done

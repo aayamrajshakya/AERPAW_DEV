@@ -1,0 +1,366 @@
+version: '3.8'
+services:
+    mysql:
+        container_name: "mysql"
+        image: mysql:8.0
+        volumes:
+            - ./database/oai_db2.sql:/docker-entrypoint-initdb.d/oai_db.sql
+            - ./healthscripts/mysql-healthcheck2.sh:/tmp/mysql-healthcheck.sh
+        environment:
+            - TZ=Europe/Paris
+            - MYSQL_DATABASE=oai_db
+            - MYSQL_USER=test
+            - MYSQL_PASSWORD=test
+            - MYSQL_ROOT_PASSWORD=linux
+        healthcheck:
+            test: /bin/bash -c "/tmp/mysql-healthcheck.sh"
+            interval: 10s
+            timeout: 5s
+            retries: 30
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.131
+    oai-udr:
+        container_name: "oai-udr"
+        image: oaisoftwarealliance/oai-udr:v2.0.0
+        expose:
+            - 80/tcp
+            - 8080/tcp
+        volumes:
+            - ./conf/ulcl_config.yaml:/openair-udr/etc/config.yaml
+        environment:
+            - TZ=Europe/Paris
+        depends_on:
+            - mysql
+            - oai-nrf
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.136
+    oai-udm:
+        container_name: "oai-udm"
+        image: oaisoftwarealliance/oai-udm:v2.0.0
+        expose:
+            - 80/tcp
+            - 8080/tcp
+        volumes:
+            - ./conf/ulcl_config.yaml:/openair-udm/etc/config.yaml
+        environment:
+            - TZ=Europe/Paris
+        depends_on:
+            - oai-udr
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.137
+    oai-ausf:
+        container_name: "oai-ausf"
+        image: oaisoftwarealliance/oai-ausf:v2.0.0
+        expose:
+            - 80/tcp
+            - 8080/tcp
+        volumes:
+            - ./conf/ulcl_config.yaml:/openair-ausf/etc/config.yaml
+        environment:
+            - TZ=Europe/Paris
+        depends_on:
+            - oai-udm
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.138
+    oai-nrf:
+        container_name: "oai-nrf"
+        image: oaisoftwarealliance/oai-nrf:v2.0.0
+        expose:
+            - 80/tcp
+            - 8080/tcp
+        volumes:
+            - ./conf/ulcl_config.yaml:/openair-nrf/etc/config.yaml
+        environment:
+            - TZ=Europe/Paris
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.130
+    oai-amf:
+        container_name: "oai-amf"
+        image: oaisoftwarealliance/oai-amf:v2.0.0
+        expose:
+            - 80/tcp
+            - 8080/tcp
+            - 38412/sctp
+        volumes:
+            - ./conf/ulcl_config.yaml:/openair-amf/etc/config.yaml
+        environment:
+            - TZ=Europe/Paris
+        depends_on:
+            - mysql
+            - vpp-upf-ulcl
+            - vpp-upf-aupf1
+            - vpp-upf-aupf2
+            - oai-ext-dn-internet
+            - oai-ext-dn-edge
+            - oai-ausf
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.132
+    oai-smf:
+        container_name: "oai-smf"
+        image: oaisoftwarealliance/oai-smf:v2.0.0
+        expose:
+            - 80/tcp
+            - 8080/tcp
+            - 8805/udp
+        volumes:
+            - ./conf/ulcl_config.yaml:/openair-smf/etc/config.yaml
+        environment:
+            - TZ=Europe/Paris
+        extra_hosts:
+            - "ulcl.node.5gcn.mnc95.mcc208.3gppnetwork.org:192.168.70.201"
+            - "aupf1.node.5gcn.mnc95.mcc208.3gppnetwork.org:192.168.70.202"
+            - "aupf2.node.5gcn.mnc95.mcc208.3gppnetwork.org:192.168.70.203"
+        depends_on:
+            - oai-amf
+            - oai-pcf
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.133
+    oai-pcf:
+        container_name: "oai-pcf"
+        image: oaisoftwarealliance/oai-pcf:v2.0.0
+        expose:
+            - 80/tcp
+            - 8080/tcp
+        volumes:
+            - ./policies/ulcl:/openair-pcf/policies
+            - ./conf/ulcl_config.yaml:/openair-pcf/etc/config.yaml
+        environment:
+            - TZ=Europe/Paris
+        depends_on:
+            - oai-nrf
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.139
+    vpp-upf-ulcl:
+        container_name: "vpp-upf-ulcl"
+        image: oaisoftwarealliance/oai-upf-vpp:v2.0.0
+        privileged: true
+        environment:
+            - IF_1_IP=192.168.70.201
+            - IF_1_TYPE=N4
+            - IF_2_IP=192.168.72.201
+            - IF_2_TYPE=N3
+            - IF_2_NWI=access.5gcn.mnc95.mcc208.3gppnetwork.org
+            - IF_2_DNAI=access
+            - IF_3_IP=192.168.73.201
+            - IF_3_TYPE=N9
+            - IF_3_NWI=aupf1.node.5gcn.mnc95.mcc208.3gppnetwork.org
+            - IF_3_DNAI=aupf1
+            - IF_4_IP=192.168.74.201
+            - IF_4_TYPE=N9
+            - IF_4_NWI=aupf2.node.5gcn.mnc95.mcc208.3gppnetwork.org
+            - IF_4_DNAI=aupf2
+            - NAME=ULCL
+            - MNC=95
+            - MCC=208
+            - REALM=3gppnetwork.org
+            - VPP_MAIN_CORE=0
+            - VPP_CORE_WORKER=1
+#           - VPP_PLUGIN_PATH=/usr/lib64/vpp_plugins/                # RHEL7
+            - VPP_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/vpp_plugins/ # Ubntu18.04
+            - SNSSAI_SD=123
+            - SNSSAI_SST=222
+            - DNN=default
+            - REGISTER_NRF=yes
+            - NRF_IP_ADDR=192.168.70.130
+            #changes for HTTP2
+            - NRF_PORT=8080
+            - HTTP_VERSION=2
+        depends_on:
+            - oai-nrf
+        healthcheck:
+            test: /bin/bash -c "pgrep vpp"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.151
+            public_net_access:
+                ipv4_address: 192.168.72.151
+            public_net_core11:
+                ipv4_address: 192.168.73.151
+            public_net_core21:
+                ipv4_address: 192.168.74.151
+    vpp-upf-aupf1:
+        image: oaisoftwarealliance/oai-upf-vpp:v2.0.0
+        privileged: true
+        container_name: "vpp-upf-aupf1"
+        environment:
+            - IF_1_IP=192.168.70.202
+            - IF_1_TYPE=N4
+            - IF_2_IP=192.168.73.202
+            - IF_2_TYPE=N9
+            - IF_2_NWI=ulcl.node.5gcn.mnc95.mcc208.3gppnetwork.org
+            - IF_2_DNAI=ulcl
+            - IF_3_IP=192.168.75.202
+            - IF_3_TYPE=N6
+            - IF_3_NWI=internet.5gcn.mnc95.mcc208.3gppnetwork.org
+            - IF_3_DNAI=internet
+            - IF_3_IP_REMOTE=192.168.75.160 #ext-dn for NAT and routing
+            - NAME=AUPF1
+            - MNC=95
+            - MCC=208
+            - REALM=3gppnetwork.org
+            - VPP_MAIN_CORE=2
+            - VPP_CORE_WORKER=3
+            #           - VPP_PLUGIN_PATH=/usr/lib64/vpp_plugins/                # RHEL7
+            - VPP_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/vpp_plugins/ # Ubntu18.04
+            - SNSSAI_SD=123
+            - SNSSAI_SST=222
+            - DNN=default
+            - REGISTER_NRF=yes
+            - NRF_IP_ADDR=192.168.70.130
+            #changes for HTTP2
+            - NRF_PORT=8080
+            - HTTP_VERSION=2
+        depends_on:
+            - oai-nrf
+        healthcheck:
+            test: /bin/bash -c "pgrep vpp"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.152
+            public_net_core11:
+                ipv4_address: 192.168.73.152
+            public_net_core12:
+                ipv4_address: 192.168.75.152
+    vpp-upf-aupf2:
+        image: oaisoftwarealliance/oai-upf-vpp:v2.0.0
+        privileged: true
+        container_name: "vpp-upf-aupf2"
+        environment:
+            - IF_1_IP=192.168.70.203
+            - IF_1_TYPE=N4
+            - IF_2_IP=192.168.74.203
+            - IF_2_TYPE=N9
+            - IF_2_NWI=ulcl.node.5gcn.mnc95.mcc208.3gppnetwork.org
+            - IF_2_DNAI=ulcl
+            - IF_3_IP=192.168.76.203
+            - IF_3_TYPE=N6
+            - IF_3_NWI=edge.5gcn.mnc95.mcc208.3gppnetwork.org
+            - IF_3_DNAI=edge
+            - IF_3_IP_REMOTE=192.168.76.160 #ext-dn for NAT and routing
+            - NAME=AUPF2
+            - MNC=95
+            - MCC=208
+            - REALM=3gppnetwork.org
+            - VPP_MAIN_CORE=4
+            - VPP_CORE_WORKER=5
+            #           - VPP_PLUGIN_PATH=/usr/lib64/vpp_plugins/                # RHEL7
+            - VPP_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/vpp_plugins/ # Ubntu18.04
+            - SNSSAI_SD=123
+            - SNSSAI_SST=222
+            - DNN=default
+            - REGISTER_NRF=yes
+            - NRF_IP_ADDR=192.168.70.130
+            #changes for HTTP2
+            - NRF_PORT=8080
+            - HTTP_VERSION=2
+        depends_on:
+            - oai-nrf
+        healthcheck:
+            test: /bin/bash -c "pgrep vpp"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            public_net:
+                ipv4_address: 192.168.70.153
+            public_net_core21:
+                ipv4_address: 192.168.74.153
+            public_net_core22:
+                ipv4_address: 192.168.76.153
+
+    oai-ext-dn-internet:
+        image: oaisoftwarealliance/trf-gen-cn5g:latest
+        privileged: true
+        init: true
+        container_name: "oai-ext-dn-internet"
+        entrypoint: /bin/bash -c \
+            "iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE;"\
+            "ip route add 12.1.1.0/24 via 192.168.75.202 dev eth0; ip route; sleep infinity"
+        command: ["/bin/bash", "-c", "trap : SIGTERM SIGINT; sleep infinity & wait"]
+        healthcheck:
+            test: /bin/bash -c "iptables -L -t nat | grep MASQUERADE"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            public_net_core12:
+                ipv4_address: 192.168.75.160
+    oai-ext-dn-edge:
+        image: oaisoftwarealliance/trf-gen-cn5g:latest
+        privileged: true
+        init: true
+        container_name: "oai-ext-dn-edge"
+        entrypoint: /bin/bash -c \
+            "iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE;"\
+            "ip route add 12.1.1.0/24 via 192.168.76.203 dev eth0; ip route; sleep infinity"
+        command: ["/bin/bash", "-c", "trap : SIGTERM SIGINT; sleep infinity & wait"]
+        healthcheck:
+            test: /bin/bash -c "iptables -L -t nat | grep MASQUERADE"
+            interval: 10s
+            timeout: 5s
+            retries: 5
+        networks:
+            public_net_core22:
+                ipv4_address: 192.168.76.160
+
+networks:
+    public_net:
+        driver: bridge
+        name: demo-oai-public-net
+        ipam:
+            config:
+                - subnet: 192.168.70.0/24
+        driver_opts:
+            com.docker.network.bridge.name: "demo-oai"
+    public_net_access:
+        name: oai-public-access
+        ipam:
+            config:
+                - subnet: 192.168.72.0/24
+        driver_opts:
+            com.docker.network.bridge.name: "cn5g-access"
+    public_net_core11:
+        name: oai-public-core11
+        ipam:
+            config:
+                - subnet: 192.168.73.0/24
+        driver_opts:
+            com.docker.network.bridge.name: "cn5g-core-11"
+
+    public_net_core21:
+        name: oai-public-core21
+        ipam:
+            config:
+                - subnet: 192.168.74.0/24
+        driver_opts:
+            com.docker.network.bridge.name: "cn5g-core-21"
+
+    public_net_core12:
+        name: oai-public-core12
+        ipam:
+            config:
+                - subnet: 192.168.75.0/24
+        driver_opts:
+            com.docker.network.bridge.name: "cn5g-core-12"
+
+    public_net_core22:
+        name: oai-public-core22
+        ipam:
+            config:
+                - subnet: 192.168.76.0/24
+        driver_opts:
+            com.docker.network.bridge.name: "cn5g-core-22"

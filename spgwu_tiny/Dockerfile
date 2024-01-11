@@ -1,0 +1,142 @@
+#/*
+# * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# * contributor license agreements.  See the NOTICE file distributed with
+# * this work for additional information regarding copyright ownership.
+# * The OpenAirInterface Software Alliance licenses this file to You under
+# * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# * except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *      http://www.openairinterface.org/?page_id=698
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *-------------------------------------------------------------------------------
+# * For more information about the OpenAirInterface (OAI) Software Alliance:
+# *      contact@openairinterface.org
+# */
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface SPGW-U-TINY service
+#   Valid for Ubuntu-20.04 (focal)
+#             Ubuntu-22.04 (jammy)
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BASE IMAGE
+#---------------------------------------------------------------------
+ARG BASE_IMAGE=ubuntu:focal
+FROM $BASE_IMAGE as oai-spgwu-tiny-base
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+ENV IS_DOCKERFILE=1
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      psmisc \
+      git \
+  && rm -rf /var/lib/apt/lists/*
+
+# Some GIT configuration commands quite useful
+RUN git config --global https.postBuffer 123289600 && \
+    git config --global http.sslverify false
+
+# Copy installation scripts
+WORKDIR /openair-spgwu-tiny
+COPY ./build/scripts /openair-spgwu-tiny/build/scripts/
+COPY ./build/spgw_u/CMakeLists.txt /openair-spgwu-tiny/build/spgw_u/CMakeLists.txt
+COPY ./build/cmake_modules /openair-spgwu-tiny/cmake_modules/
+
+# Installing all the needed libraries/packages to build and run SPGWU-TINY
+WORKDIR /openair-spgwu-tiny/build/scripts
+RUN ./build_spgwu --install-deps --force
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM oai-spgwu-tiny-base as oai-spgwu-tiny-builder
+# Copy the rest of source code
+COPY . /openair-spgwu-tiny
+# Building SPGW-U-TINY
+WORKDIR /openair-spgwu-tiny/build/scripts
+RUN ./build_spgwu --clean --build-type Release --jobs --Verbose && \
+    ldd /openair-spgwu-tiny/build/spgw_u/build/spgwu && \
+    mv /openair-spgwu-tiny/build/spgw_u/build/spgwu /openair-spgwu-tiny/build/spgw_u/build/oai_spgwu
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM $BASE_IMAGE as oai-spgwu-tiny
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      python3 \
+      python3-jinja2 \
+      tzdata \
+      psmisc \
+      net-tools \
+      iproute2 \
+      ethtool \
+      iptables \
+      netbase \
+      libgssapi-krb5-2 \
+# Ubuntu 18/20 --> libldap-2.4-2
+# Ubuntu 22    --> libldap-2.5-0
+      libldap-2.?-? \
+      libgoogle-glog0v5 \
+# Ubuntu 18 --> libdouble-conversion1
+# Ubuntu 20 --> libdouble-conversion3
+      libdouble-conversion? \
+      libconfig++9v5 \
+      librtmp1 \
+      libpsl5 \
+      libnghttp2-14 \
+      libcurl?-gnutls \
+      libboost-thread1.7?.0 \
+  && rm -rf /var/lib/apt/lists/*
+
+# Copying executable and generated libraries
+WORKDIR /openair-spgwu-tiny/bin
+COPY --from=oai-spgwu-tiny-builder \
+    /openair-spgwu-tiny/build/spgw_u/build/oai_spgwu \
+    /openair-spgwu-tiny/scripts/entrypoint.py \
+    /openair-spgwu-tiny/scripts/healthcheck.sh \
+    ./
+
+WORKDIR /usr/local/lib
+COPY --from=oai-spgwu-tiny-builder \
+    /usr/local/lib/libfmt.so \
+    ./
+
+RUN ldconfig && \
+    ldd /openair-spgwu-tiny/bin/oai_spgwu
+
+# Copying template configuration files
+# The configuration folder will be flat
+WORKDIR /openair-spgwu-tiny/etc
+COPY --from=oai-spgwu-tiny-builder /openair-spgwu-tiny/etc/spgw_u.conf .
+
+WORKDIR /openair-spgwu-tiny
+
+# use these labels for CI purpose
+LABEL support-multi-sgwu-instances="true"
+LABEL support-nrf-fdqn="true"
+
+# expose ports
+EXPOSE 2152/udp 8805/udp
+# healthcheck
+HEALTHCHECK --interval=10s \
+            --timeout=15s \
+            --retries=6 \
+    CMD /openair-spgwu-tiny/bin/healthcheck.sh
+
+CMD ["/openair-spgwu-tiny/bin/oai_spgwu", "-c", "/openair-spgwu-tiny/etc/spgw_u.conf", "-o"]
+ENTRYPOINT ["python3", "/openair-spgwu-tiny/bin/entrypoint.py"]

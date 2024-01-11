@@ -1,0 +1,20 @@
+# CODEOWNERS  
+src/ausf_app:
+ - Keliang DU, BUPT
+ - Tien Thinh NGUYEN, Eurecom
+
+src/itti
+ - Lionel GAUTHIER, Eurecom
+ - Tien Thinh NGUYEN, Eurecom
+src/common
+ - Sebastien ROUX, Eurecom  
+ - Lionel Gauthier, Eurecom
+ - Tien Thinh NGUYEN, Eurecom
+ - Keliang DU, BUPT
+
+src/5gaka
+ - GAUTHIER Lionel, Eurecom
+ - Tien Thinh NGUYEN, Eurecom
+ - Jian Yang, Bupt
+ - Fengjiao He, Bupt
+ - Hongxin Wang, Bupt

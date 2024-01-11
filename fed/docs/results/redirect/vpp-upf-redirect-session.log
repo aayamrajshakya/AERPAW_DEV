@@ -1,0 +1,47 @@
+CP F-SEID: 0x0000000000000001 (1) @ 192.168.70.133
+UP F-SEID: 0x0000000000000001 (1) @ 192.168.70.201
+  PFCP Association: 0
+  TEID assignment per choose ID
+     42: 1048859248 (0x3e845270)
+PDR: 1 @ 0x7f400e3754f0
+  Precedence: 10
+  PDI:
+    Fields: 0000000d
+    Source Interface: Access
+    Network Instance: access.oai.org
+    Local F-TEID: 1048859248 (0x3e845270)
+            IPv4: 192.168.72.201
+    UE IP address (source):
+      IPv4 address: 12.1.1.2
+    SDF Filter [1]:
+      permit out ip from any to assigned 
+  Outer Header Removal: GTP-U/UDP/IPv4
+  FAR Id: 1
+  URR Ids: [] @ 0x0
+  QER Ids: [] @ 0x0
+PDR: 2 @ 0x7f400e375570
+  Precedence: 10
+  PDI:
+    Fields: 0000000c
+    Source Interface: Core
+    Network Instance: internet.oai.org
+    UE IP address (destination):
+      IPv4 address: 12.1.1.2
+    SDF Filter [1]:
+      permit out ip from any to assigned 
+  Outer Header Removal: no
+  FAR Id: 2
+  URR Ids: [] @ 0x0
+  QER Ids: [] @ 0x0
+FAR: 1
+  Apply Action: 00000002 == [FORWARD]
+  Forward:
+    Network Instance: internet.oai.org
+    Destination Interface: 1
+    Redirect Information: HTTP to facebook.com
+FAR: 2
+  Apply Action: 00000002 == [FORWARD]
+  Forward:
+    Network Instance: access.oai.org
+    Destination Interface: 0
+    Outer Header Creation: [GTP-U/UDP/IPv4],TEID:5f19f172,IP:192.168.72.141

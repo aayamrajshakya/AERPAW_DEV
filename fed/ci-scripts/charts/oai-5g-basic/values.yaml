@@ -1,0 +1,113 @@
+mysql:
+  enabled: true
+  imagePullPolicy: IfNotPresent
+  oai5gdatabase: basic
+  persistence:
+    enabled: false
+oai-nrf:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  nfimage:  # image name either locally present or in a public/private repository
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-nrf           ## The image will be pulled from dockerhub
+    version: NRF_TAG                                    ## The branch to be used to pull from dockerhub
+    # pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  nodeSelector: {}
+oai-udr:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  nfimage:  # image name either locally present or in a public/private repository
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-udr           ## The image will be pulled from dockerhub
+    version: UDR_TAG                                    ## The branch to be used to pull from dockerhub
+    # pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  config:
+    http2Param: "--http2-prior-knowledge"
+  nodeSelector: {}
+oai-udm:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  nfimage:  # image name either locally present or in a public/private repository
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-udm           ## The image will be pulled from dockerhub
+    version: UDM_TAG                                    ## The branch to be used to pull from dockerhub
+    # pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  config:
+    http2Param: "--http2-prior-knowledge"
+  nodeSelector: {}
+oai-ausf:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  nfimage:  # image name either locally present or in a public/private repository
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-ausf           ## The image will be pulled from dockerhub
+    version: AUSF_TAG                                    ## The branch to be used to pull from dockerhub
+    # pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  config:
+    http2Param: "--http2-prior-knowledge"
+  nodeSelector: {}
+oai-amf:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  nfimage:  # image name either locally present or in a public/private repository
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-amf           ## The image will be pulled from dockerhub
+    version: AMF_TAG                                    ## The branch to be used to pull from dockerhub
+    # pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  multus:
+    create: true
+    n2IPadd: "172.21.6.200"
+    n2Netmask: "22"
+    n2Gateway: "172.21.7.254"
+    hostInterface: "bond0"      # Interface of the host machine on which this pod will be scheduled
+  config:
+    http2Param: "--http2-prior-knowledge"
+  nodeSelector:     #Using dedicated nodeName in the chart directly
+    worker: "telco"
+oai-upf:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  nfimage:  # image name either locally present or in a public/private repository
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-upf    ## The image will be pulled from dockerhub
+    version: UPF_TAG                                    ## The branch to be used to pull from dockerhub
+    # pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  multus:
+    create: true
+    n3Ip: "172.21.6.201"
+    n3Netmask: "22"
+    n6Gw: "172.21.7.254"
+    hostInterface: "bond0"
+  nodeSelector: 
+    worker: "telcort"
+  config:
+    http2Param: "--http2-prior-knowledge"
+oai-traffic-server:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  trafficServer:
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-traffic-server
+    version: latest
+    #pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  multus:
+    create: true
+    n3Ip: "172.21.6.202"
+    n3Netmask: "22"
+    n6Gw: "172.21.7.254"
+    hostInterface: "bond0"
+  config:
+    ueroute: 12.1.1.0/24
+    upfIpadd: 172.21.6.201
+    noOfIperf3Server: 2
+oai-smf:
+  enabled: true
+  kubernetesType: Openshift #Openshift/Vanilla Vanilla for Upstream Kubernetes
+  nfimage:  # image name either locally present or in a public/private repository
+    repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-smf           ## The image will be pulled from dockerhub
+    version: SMF_TAG                                    ## The branch to be used to pull from dockerhub
+    # pullPolicy: IfNotPresent or Never or Always
+    pullPolicy: IfNotPresent
+  config:
+    http2Param: "--http2-prior-knowledge"
+

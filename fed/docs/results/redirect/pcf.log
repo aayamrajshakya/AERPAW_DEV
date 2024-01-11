@@ -1,0 +1,129 @@
+[2023-08-11 14:49:26.650] [config ] [info] Reading NF configuration from /openair-pcf/etc/config.yaml
+[2023-08-11 14:49:26.695] [config ] [debug] Unknown NF amf in configuration. Ignored
+[2023-08-11 14:49:26.695] [config ] [debug] Unknown NF smf in configuration. Ignored
+[2023-08-11 14:49:26.695] [config ] [debug] Unknown NF udm in configuration. Ignored
+[2023-08-11 14:49:26.695] [config ] [debug] Unknown NF udr in configuration. Ignored
+[2023-08-11 14:49:26.695] [config ] [debug] Unknown NF ausf in configuration. Ignored
+[2023-08-11 14:49:26.695] [config ] [debug] Unknown NF nssf in configuration. Ignored
+[2023-08-11 14:49:26.696] [config ] [debug] Validating configuration of log_level
+[2023-08-11 14:49:26.696] [config ] [debug] Validating configuration of register_nf
+[2023-08-11 14:49:26.696] [config ] [debug] Validating configuration of http_version
+[2023-08-11 14:49:26.696] [config ] [debug] Validating configuration of nrf
+[2023-08-11 14:49:26.702] [config ] [debug] Validating configuration of pcf
+[2023-08-11 14:49:26.745] [config ] [info] ==== OPENAIRINTERFACE pcf vBranch: HEAD Abrev. Hash: cbe113c Date: Thu Aug 3 07:15:23 2023 +0000 ====
+[2023-08-11 14:49:26.746] [config ] [info] Basic Configuration:
+[2023-08-11 14:49:26.746] [config ] [info]   - log_level..................................: debug
+[2023-08-11 14:49:26.746] [config ] [info]   - register_nf................................: Yes
+[2023-08-11 14:49:26.746] [config ] [info]   - http_version...............................: 2
+[2023-08-11 14:49:26.746] [config ] [info] pcf:
+[2023-08-11 14:49:26.746] [config ] [info]   - host.......................................: oai-pcf
+[2023-08-11 14:49:26.746] [config ] [info]   - SBI
+[2023-08-11 14:49:26.746] [config ] [info]     + URL......................................: http://oai-pcf:8080
+[2023-08-11 14:49:26.746] [config ] [info]     + API Version..............................: v1
+[2023-08-11 14:49:26.746] [config ] [info]     + IPv4 Address ............................: 192.168.70.139
+[2023-08-11 14:49:26.746] [config ] [info] Policy
+[2023-08-11 14:49:26.746] [config ] [info]   - Policy Decisions...........................: /openair-pcf/policies/policy_decisions
+[2023-08-11 14:49:26.746] [config ] [info]   - PCC Rules..................................: /openair-pcf/policies/pcc_rules
+[2023-08-11 14:49:26.746] [config ] [info]   - Traffic Rules..............................: /openair-pcf/policies/traffic_rules
+[2023-08-11 14:49:26.746] [config ] [info] Peer NF Configuration:
+[2023-08-11 14:49:26.746] [config ] [info]   nrf:
+[2023-08-11 14:49:26.746] [config ] [info]     - host.....................................: oai-nrf
+[2023-08-11 14:49:26.746] [config ] [info]     - SBI
+[2023-08-11 14:49:26.746] [config ] [info]       + URL....................................: http://oai-nrf:8080
+[2023-08-11 14:49:26.746] [config ] [info]       + API Version............................: v1
+[2023-08-11 14:49:26.746] [pcf_app] [start] Starting...
+[2023-08-11 14:49:26.746] [pcf_app] [start] Reading local Policy configuration...
+[2023-08-11 14:49:26.754] [pcf_app] [debug] Rule redirection-scenario successfully parsed.
+[2023-08-11 14:49:26.755] [pcf_app] [debug] Rule redirection-rule successfully parsed.
+[2023-08-11 14:49:26.755] [pcf_app] [debug] Decision decision_supi1 successfully parsed.
+[2023-08-11 14:49:26.755] [pcf_app] [info] Reading the Policies from file was successful
+[2023-08-11 14:49:26.755] [pcf_app] [debug] Policy Storage: 
+ - Default Decision: 
+ -- No Default Decision
+ - Slice Decisions: 
+ -- No Slice Decisions
+ - DNN Decisions: 
+ -- No DNN Decisions
+ - SUPI Decisions: 
+ -- SUPI: imsi-208950000000031
+ -- PCC Rule IDs: redirection-rule
+
+
+[2023-08-11 14:49:26.755] [pcf_app] [debug] - NF instance info
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     Instance ID: c9b22340-8a0d-4376-ad81-ce3c424aecd1
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     Instance name: OAI-PCF
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     Instance type: PCF
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     Instance fqdn: 
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     Status: REGISTERED
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     HeartBeat timer: 50
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     Priority: 1
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     Capacity: 100
+[2023-08-11 14:49:26.755] [pcf_app] [debug]     IPv4 Addr:
+[2023-08-11 14:49:26.755] [pcf_app] [debug]         192.168.70.139
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 	PCF Info
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 		 GroupId: oai-pcf-testgroupid
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 		 SupiRanges: Start - 208950000000031, End - 208950000000131, Pattern - ^imsi-20895[31-131]{10}$
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 		 GpsiRanges: Start - 752740000, End - 752749999, Pattern - ^gpsi-75274[0-9]{4}$
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 		 DNN: default
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 		 DNN: oai
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 		 DNN: oai.ipv4
+[2023-08-11 14:49:26.755] [pcf_app] [debug] 		 DNN: ims
+[2023-08-11 14:49:26.755] [pcf_app] [debug] PCF profile to json:
+ {"capacity":100,"custom_info":null,"heartBeatTimer":50,"ipv4Addresses":["192.168.70.139"],"nfInstanceId":"c9b22340-8a0d-4376-ad81-ce3c424aecd1","nfInstanceName":"OAI-PCF","nfServices":[{"ipEndPoints":[{"ipv4Address":"192.168.70.139","port":8080,"transport":"TCP"}],"nfServiceStatus":"REGISTERED","scheme":"http","serviceInstanceId":"npcf-smpolicycontrol","serviceName":"npcf-smpolicycontrol","versions":[{"apiFullVersion":"1.0.0","apiVersionInUri":"v1"}]}],"nfStatus":"REGISTERED","nfType":"PCF","pcfInfo":{"dnnList":["default","oai","oai.ipv4","ims"],"gpsiRanges":[{"end":"752749999","pattern":"^gpsi-75274[0-9]{4}$","start":"752740000"}],"groupId":"oai-pcf-testgroupid","supiRanges":[{"end":"208950000000131","pattern":"^imsi-20895[31-131]{10}$","start":"208950000000031"}]},"priority":1,"sNssais":[]}
+[2023-08-11 14:49:26.755] [pcf_sbi] [info] Sending NF registration request
+*   Trying 192.168.70.130:8080...
+* TCP_NODELAY set
+* Connected to oai-nrf (192.168.70.130) port 8080 (#0)
+* Using HTTP2, server supports multi-use
+* Connection state changed (HTTP/2 confirmed)
+* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+* Using Stream ID: 1 (easy handle 0x564140a1e4e0)
+> PUT /nnrf-nfm/v1/nf-instances/c9b22340-8a0d-4376-ad81-ce3c424aecd1 HTTP/2
+Host: oai-nrf:8080
+accept: */*
+content-type: application/json
+content-length: 803
+
+* Connection state changed (MAX_CONCURRENT_STREAMS == 100)!
+* We are completely uploaded and fine
+< HTTP/2 201 
+< date: Fri, 11 Aug 2023 12:49:26 GMT
+< content-type: application/json
+< location: 192.168.70.130/nnrf-nfm/v1/nf-instances/c9b22340-8a0d-4376-ad81-ce3c424aecd1
+< 
+* Connection #0 to host oai-nrf left intact
+[2023-08-11 14:49:26.761] [pcf_sbi] [debug] NF registration successful
+[2023-08-11 14:49:26.761] [pcf_app] [info] NRF TASK Created 
+[2023-08-11 14:49:26.761] [pcf_sbi] [info] HTTP2 server started
+[2023-08-11 14:49:59.790] [pcf_app] [debug] SM Policy request from SUPI: Decide based on SUPI
+[2023-08-11 14:49:59.790] [pcf_app] [info] Created Policy Decision for SUPI imsi-208950000000031 with ID 1
+Caught SIGINT signal 
+[2023-08-11 14:51:41.585] [system ] [start] exiting
+Shutting down HTTP servers...
+[2023-08-11 14:51:41.585] [pcf_sbi] [info] Sending NF de-registration request
+*   Trying 192.168.70.130:8080...
+* TCP_NODELAY set
+* Connected to oai-nrf (192.168.70.130) port 8080 (#0)
+* Using HTTP2, server supports multi-use
+* Connection state changed (HTTP/2 confirmed)
+* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+* Using Stream ID: 1 (easy handle 0x564140a1e4e0)
+> DELETE /nnrf-nfm/v1/nf-instances/c9b22340-8a0d-4376-ad81-ce3c424aecd1 HTTP/2
+Host: oai-nrf:8080
+accept: */*
+
+* Connection state changed (MAX_CONCURRENT_STREAMS == 100)!
+< HTTP/2 204 
+< date: Fri, 11 Aug 2023 12:51:41 GMT
+< content-type: application/json
+< location: 192.168.70.130/nnrf-nfm/v1/nf-instances/c9b22340-8a0d-4376-ad81-ce3c424aecd1
+< 
+* Connection #0 to host oai-nrf left intact
+[2023-08-11 14:51:41.588] [pcf_sbi] [info] NF Deregistration successful
+[2023-08-11 14:51:41.588] [pcf_app] [debug] Delete PCF_APP instance...
+[2023-08-11 14:51:41.588] [pcf_sbi] [debug] Delete PCF_NRF instance...
+[2023-08-11 14:51:41.588] [pcf_app] [debug] Delete PCF Profile instance...
+[2023-08-11 14:51:41.588] [pcf_app] [debug] Delete PCF Client instance...
+[2023-08-11 14:51:41.588] [pcf_app] [debug] Delete PCF SMPC instance...
+[2023-08-11 14:51:41.588] [pcf_app] [debug] Delete PCF Profile instance...
+[2023-08-11 14:51:41.588] [pcf_app] [info] HTTP servers successfully stopped. Exiting

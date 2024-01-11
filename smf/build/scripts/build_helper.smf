@@ -1,0 +1,276 @@
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The OpenAirInterface Software Alliance licenses this file to You under
+# the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.openairinterface.org/?page_id=698
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+# For more information about the OpenAirInterface (OAI) Software Alliance:
+#      contact@openairinterface.org
+################################################################################
+
+# file build_helper.smf
+# brief
+# author Laurent Thomas, Lionel GAUTHIER
+#
+#######################################
+################################
+# include helper functions
+################################
+SCRIPT=$(readlink -f ${BASH_SOURCE})
+THIS_SCRIPT_PATH=`dirname $SCRIPT`
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.fmt
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.spdlog
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.pistache
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.nlohmann
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.nghttp2
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.yamlcpp
+
+#-------------------------------------------------------------------------------
+#arg1 is force (0 or 1) (no interactive script)
+#arg2 is debug (0 or 1) (install debug libraries)
+check_install_smf_deps() {
+
+  if [ $1 -gt 0 ]; then
+    OPTION="-y"
+  else
+    OPTION=""
+  fi
+  if [ $2 -eq 0 ]; then
+    debug=0
+  else
+    debug=1
+  fi
+
+  echo "Check supported distribution"
+  check_supported_distribution
+  [[ $? -ne 0 ]] && return $?
+
+  # prevent lock on /var/lib/dpkg/lock
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    #$SUDO systemctl mask apt-daily.service
+    #$SUDO systemctl mask apt-daily.timer
+    #$SUDO systemctl mask apt-daily-upgrade.service
+    #$SUDO systemctl mask apt-daily-upgrade.timer
+    if [ $IS_CONTAINER -eq 0 ]; then
+      $SUDO sed -i 's/1/0/g' /etc/apt/apt.conf.d/10periodic
+    fi
+  fi
+
+  update_package_db
+
+
+  check_enable_epel_repos
+
+  # Compilers, generators, ...
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    PACKAGE_LIST="\
+      autoconf \
+      automake \
+      build-essential \
+      $CMAKE \
+      git"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      autoconf \
+      automake \
+      gcc-c++ \
+      $CMAKE \
+      make \
+      git"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install build tools"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  # Libraries
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    case "$(get_distribution_release)" in
+      "ubuntu20.04")
+        specific_packages="libasio-dev libboost-all-dev libasan5"
+        ;;
+      "ubuntu22.04")
+        specific_packages="libasio-dev libboost-all-dev libasan6"
+        ;;
+    esac
+    # removed libspdlog-dev
+    PACKAGE_LIST="\
+      $specific_packages \
+      libcurl4-gnutls-dev \
+      libevent-dev \
+      libgmp-dev \
+      libhogweed? \
+      libssl-dev \
+      libtool \
+      libxml2 \
+      libxml2-dev \
+      openssl \
+      nettle-dev \
+      libcurl4 \
+      net-tools \
+      pkg-config \
+      ninja-build"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      boost-devel \
+      libgcrypt-devel \
+      gmp-devel \
+      openssl-devel \
+      libtool \
+      libxml2 \
+      libxml2-devel \
+      openssl \
+      check \
+      nettle-devel \
+      libcurl-devel \
+      python2 \
+      pkgconfig \
+      ninja-build \
+      libasan"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install distro libs"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+  echo "distro libs installation complete"
+
+  install_fmt_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_spdlog_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_pistache_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_nlohmann_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_nghttp2_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  # latest usage of yaml-cpp suggests that we should be using 0.7+ version
+  # To be sure, let's install from source all the time for the moment
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    case "$(get_distribution_release)" in
+      "ubuntu20.04")
+        # definitely, 0.6.2 as PPA installed is not enough
+        install_libyaml_cpp_from_git $1 $2
+        ret=$?;[[ $ret -ne 0 ]] && return $ret
+        ;;
+      "ubuntu22.04")
+        # not sure about 0.7.0
+        #$SUDO $INSTALLER install $OPTION libyaml-cpp0.7 libyaml-cpp-dev
+        install_libyaml_cpp_from_git $1 $2
+        ret=$?;[[ $ret -ne 0 ]] && return $ret
+        ;;
+    esac
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    # definitely, 0.6.2 as PPA installed is not enough
+    # $SUDO $INSTALLER install $OPTION yaml-cpp yaml-cpp-devel
+    install_libyaml_cpp_from_git $1 $2
+    ret=$?;[[ $ret -ne 0 ]] && return $ret
+  fi
+
+  $SUDO ldconfig
+  return 0
+}
+#-------------------------------------------------------------------------------
+#arg1 is force (0 or 1) (no interactive script)
+#arg2 is debug (0 or 1) (install debug libraries)
+check_install_smf_min_deps() {
+
+  if [ $1 -gt 0 ]; then
+    OPTION="-y"
+  else
+    OPTION=""
+  fi
+  if [ $2 -eq 0 ]; then
+    debug=0
+  else
+    debug=1
+  fi
+
+  echo "Check supported distribution"
+  check_supported_distribution
+  [[ $? -ne 0 ]] && return $?
+
+  # prevent lock on /var/lib/dpkg/lock
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    #$SUDO systemctl mask apt-daily.service
+    #$SUDO systemctl mask apt-daily.timer
+    #$SUDO systemctl mask apt-daily-upgrade.service
+    #$SUDO systemctl mask apt-daily-upgrade.timer
+    $SUDO sed -i 's/1/0/g' /etc/apt/apt.conf.d/10periodic
+  fi
+
+  update_package_db
+
+  check_enable_epel_repos
+
+  # Compilers, generators, ...
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    PACKAGE_LIST="\
+      gdb"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      gdb"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install build tools"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+
+  # Libraries
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    PACKAGE_LIST="\
+      libtool"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      libtool"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install distro libs"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  # Networking
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    PACKAGE_LIST="\
+      ethtool \
+      iptables \
+      vlan"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      ethtool \
+      iperf \
+      iproute \
+      iptables \
+      vconfig"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install networking tools"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+  echo "networking tools installation complete"
+
+  return 0
+}

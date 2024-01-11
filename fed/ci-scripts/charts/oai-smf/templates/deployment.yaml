@@ -1,0 +1,137 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+  labels:
+    {{- include "oai-smf.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "oai-smf.selectorLabels" . | nindent 6 }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "oai-smf.selectorLabels" . | nindent 8 }}
+    {{- if .Values.multus.create }}
+      annotations:
+        k8s.v1.cni.cncf.io/networks: >-
+          [{
+                 "name": "{{ .Chart.Name }}-n4-net1",
+                 "default-route": ["{{ .Values.multus.n4Gateway }}"]
+          }]
+    {{- end }}
+    spec:
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+    {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{ toYaml .Values.imagePullSecrets | indent 8 }}
+    {{- end }}
+      initContainers:
+        - name: init
+          image: "{{ .Values.initContainer.repository }}:{{ .Values.initContainer.version }}"
+          imagePullPolicy: {{ .Values.initContainer.pullPolicy }}
+          command: 
+            - /bin/sh
+            - -c 
+            - until curl --head -X GET http://{{ .Values.config.nrfFqdn }}/nnrf-nfm/v1/nf-instances?nf-type='NRF' {{ .Values.config.http2Param }}; do echo waiting for oai-nrf; sleep 2; done
+      containers:
+      - name: tcpdump
+        image: "{{ .Values.tcpdumpimage.repository }}:{{ .Values.tcpdumpimage.version }}"
+        imagePullPolicy: {{ .Values.tcpdumpimage.pullPolicy }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        {{- if .Values.start.tcpdump}}
+        command:
+          - /bin/sh
+          - -c
+          - /usr/sbin/tcpdump -i any -w /pcap/oai-smf_`date +%Y-%m-%d_%H_%M-%S-%Z`.pcap
+        {{- else}}
+        {{- if .Values.resources.define}}
+        resources:
+          requests:
+            memory: {{ .Values.resources.tcpdump.requests.memory | quote }}
+            cpu: {{ .Values.resources.tcpdump.requests.cpu | quote }}
+          limits:
+            memory: {{ .Values.resources.tcpdump.limits.memory | quote }}
+            cpu: {{ .Values.resources.tcpdump.limits.cpu | quote }}
+        {{- end}}
+        command:
+          - /bin/sleep
+          - infinity
+        {{- end}}
+        {{- if .Values.persistent.sharedvolume}}
+        volumeMounts:
+        - mountPath: "/pcap"
+          name: cn5g-pvc
+        {{- end}}
+      - name: smf
+        image: "{{ .Values.nfimage.repository }}:{{ .Values.nfimage.version }}"
+        imagePullPolicy: {{ .Values.nfimage.pullPolicy }}
+        volumeMounts:
+          - mountPath: /openair-smf/etc
+            name: configuration
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        {{- if .Values.readinessProbe}}
+        readinessProbe:
+          exec:
+            command:
+            - pgrep
+            - oai_smf
+          initialDelaySeconds: 2
+          periodSeconds: 3
+        {{- end}}
+        {{- if .Values.livenessProbe}}
+        livenessProbe:
+          exec:
+            command:
+            - pgrep
+            - oai_smf
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        {{- end}}
+        ports:
+        - containerPort: 8805
+          name: oai-smf
+        - containerPort: {{ .Values.config.smfInterfacePortForSBI }}
+          name: http1
+        - containerPort: {{ .Values.config.smfInterfaceHttp2PortForSBI }}
+          name: http2
+        {{- if .Values.resources.define}}
+        resources:
+          requests:
+            memory: {{ .Values.resources.nf.requests.memory | quote }}
+            cpu: {{ .Values.resources.nf.requests.cpu | quote }}
+          limits:
+            memory: {{ .Values.resources.nf.limits.memory | quote }}
+            cpu: {{ .Values.resources.nf.limits.cpu | quote }}
+        {{- end}}
+        {{- if not .Values.start.smf}}
+        command:
+          - /bin/sleep
+          - infinity
+        {{- end}}
+      volumes:
+      {{- if .Values.persistent.sharedvolume}}
+      - name: cn5g-pvc
+        persistentVolumeClaim:
+          claimName: cn5g-pvc
+      {{- end }}
+      - configMap:
+          name: oai5gcn
+        name: configuration
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if .Values.nodeSelector}}
+      nodeSelector: 
+         {{- toYaml .Values.nodeSelector | nindent 12 }}
+      {{- end }}
+      {{- if .Values.nodeName}}
+      nodeName: {{ .Values.nodeName }}
+      {{- end }}

@@ -1,0 +1,261 @@
+@INSTANCE@
+@PID_DIRECTORY@
+@UDR_NAME@
+@USE_FQDN_DNS@
+@REGISTER_NRF@
+@USE_HTTP2@
+@UDR_INTERFACE_NAME_FOR_NUDR@
+@UDR_INTERFACE_PORT_FOR_NUDR@
+@UDR_INTERFACE_HTTP2_PORT_FOR_NUDR@
+@UDR_API_VERSION@
+@NRF_IPV4_ADDRESS@
+@NRF_PORT@
+@NRF_API_VERSION@
+@NRF_FQDN@
+@MYSQL_IPV4_ADDRESS@
+@MYSQL_USER@
+@MYSQL_PASS@
+@MYSQL_DB@
+/openair-udr/bin /openair-udr
+wait-for-it.sh: waiting 120 seconds for 192.168.70.131:3306
+wait-for-it.sh: 192.168.70.131:3306 is available after 0 seconds
+/openair-udr
+[2023-01-18T13:48:48.660078] [udr] [udr_server] [start] Options parsed
+[2023-01-18T13:48:48.679618] [udr] [configurations] [info ] ==== OAI-CN5G UDR vBranch: HEAD Abrev. Hash: f09c866 Date: Mon Dec 19 10:27:54 2022 +0000 ====
+[2023-01-18T13:48:48.679637] [udr] [configurations] [info ] ======================    UDR   =====================
+[2023-01-18T13:48:48.679639] [udr] [configurations] [info ] Configuration UDR:
+[2023-01-18T13:48:48.679641] [udr] [configurations] [info ] - Instance ................: 0
+[2023-01-18T13:48:48.679643] [udr] [configurations] [info ] - PID dir .................: /var/run
+[2023-01-18T13:48:48.679645] [udr] [configurations] [info ] - UDR Name ................: OAI_UDR
+[2023-01-18T13:48:48.679646] [udr] [configurations] [info ] - Nudr Networking:
+[2023-01-18T13:48:48.679647] [udr] [configurations] [info ]     Interface name ........: eth0
+[2023-01-18T13:48:48.679650] [udr] [configurations] [info ]     IPv4 Addr .............: 192.168.70.136
+[2023-01-18T13:48:48.679651] [udr] [configurations] [info ]     HTTP1 Port ............: 80
+[2023-01-18T13:48:48.679652] [udr] [configurations] [info ]     HTTP2 port ............: 8080
+[2023-01-18T13:48:48.679654] [udr] [configurations] [info ]     API version ...........: v1
+[2023-01-18T13:48:48.679655] [udr] [configurations] [info ] - Supported Features:
+[2023-01-18T13:48:48.679657] [udr] [configurations] [info ]     Register NRF ..........: Yes
+[2023-01-18T13:48:48.679658] [udr] [configurations] [info ]     Use FQDN ..............: Yes
+[2023-01-18T13:48:48.679660] [udr] [configurations] [info ]     Use HTTP2 .............: No
+[2023-01-18T13:48:48.679661] [udr] [configurations] [info ]     Database ..............: MySQL
+[2023-01-18T13:48:48.679662] [udr] [configurations] [info ] - NRF:
+[2023-01-18T13:48:48.679664] [udr] [configurations] [info ]     IPv4 Addr .............: 192.168.70.130
+[2023-01-18T13:48:48.679665] [udr] [configurations] [info ]     Port ..................: 80  
+[2023-01-18T13:48:48.679666] [udr] [configurations] [info ]     API version ...........: v1
+[2023-01-18T13:48:48.679667] [udr] [configurations] [info ]     FQDN ..................: oai-nrf
+[2023-01-18T13:48:48.679668] [udr] [configurations] [info ] - MySQL:
+[2023-01-18T13:48:48.679670] [udr] [configurations] [info ]     Server Addr ...........: 192.168.70.131
+[2023-01-18T13:48:48.679671] [udr] [configurations] [info ]     Username ..............: test
+[2023-01-18T13:48:48.679672] [udr] [configurations] [info ]     Password ..............: test
+[2023-01-18T13:48:48.679673] [udr] [configurations] [info ]     Database ..............: oai_db
+[2023-01-18T13:48:48.679675] [udr] [configurations] [info ]     DB Timeout ............: 300 (seconds)
+[2023-01-18T13:48:48.679680] [udr] [udr_app] [start] Starting...
+[2023-01-18T13:48:48.684367] [udr] [udr_mysql] [info ] Connected to MySQL DB
+[2023-01-18T13:48:48.684437] [udr] [udr_nrf] [info ] Sending NF registeration request
+[2023-01-18T13:48:48.684448] [udr] [udr_app] [info ] Send HTTP message with body {"capacity":100,"fqdn":"","heartBeatTimer":50,"ipv4Addresses":["192.168.70.136"],"nfInstanceId":"1828d384-3aae-463e-bdb3-af8e77b72ca0","nfInstanceName":"OAI-UDR","nfStatus":"REGISTERED","nfType":"UDR","priority":1,"sNssais":[],"udrInfo":{"DataSetId":["0210","9876"],"externalGroupIdentifiersRanges":[],"gpsiRanges":[{"end":"752749999","pattern":"^gpsi-75274[0-9]{4}$","start":"752740000"}],"groupId":"oai-udr-testgroupid","supiRanges":[{"end":"","pattern":"^imsi-20895[31-131]{6}$","start":"208950000000131"}]}}
+[2023-01-18T13:48:48.685936] [udr] [udr_app] [info ] Get response with HTTP code (201)
+[2023-01-18T13:48:48.685999] [udr] [udr_app] [info ] NRF TASK Created 
+[2023-01-18T13:48:48.686005] [udr] [udr_app] [start] Started
+[2023-01-18T13:48:48.686667] [udr] [udr_server] [info ] HTTP1 Server started
+[2023-01-18T13:48:48.686698] [udr] [udr_server] [info ] HTTP2 server started 
+[2023-01-18T13:48:58.688381] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:48:58.688625] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:48:58.739372] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:49:08.741991] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:08.742025] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:08.742561] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:49:18.795990] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:18.796022] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:18.796501] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:49:28.716568] [udr] [udr_app] [info ] Retrieve the authentication subscription data of a UE
+[2023-01-18T13:49:28.716595] [udr] [udr_mysql] [info ] Query Authentication Subscription
+[2023-01-18T13:49:28.717211] [udr] [udr_mysql] [info ] MySQL Query: SELECT * FROM AuthenticationSubscription WHERE ueid='208950000000031'
+[2023-01-18T13:49:28.718350] [udr] [udr_app] [info ] AuthenticationSubscription: {"algorithmId":"milenage","authenticationManagementField":"8000","authenticationMethod":"5G_AKA","encOpcKey":"63bfa50ee6523365ff14c1f45f88737d","encPermanentKey":"0C0A34601D4F07677303652C0462535B","protectionParameterId":"0C0A34601D4F07677303652C0462535B","sequenceNumber":{"lastIndexes":{"ausf":0},"sqn":"000000000020","sqnScheme":"NON_TIME_BASED"},"supi":"208950000000031"}
+[2023-01-18T13:49:28.720967] [udr] [udr_app] [info ] Modify the authentication subscription data of a UE
+[2023-01-18T13:49:28.720979] [udr] [udr_mysql] [info ] MySQL Query: SELECT * from AuthenticationSubscription WHERE ueid='208950000000031'
+[2023-01-18T13:49:28.721302] [udr] [udr_mysql] [info ] MySQL Update Cmd UPDATE AuthenticationSubscription SET sequenceNumber='{"lastIndexes":{"ausf":0},"sqn":"000000000060","sqnScheme":"NON_TIME_BASED"}' WHERE ueid='208950000000031'
+[2023-01-18T13:49:28.723110] [udr] [udr_mysql] [info ] AuthenticationSubscription PATCH: [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:49:28.723116] [udr] [udr_app] [info ] Successful modified the Authentication subscription data of a UE
+[2023-01-18T13:49:28.726575] [udr] [udr_app] [info ] Retrieve the authentication subscription data of a UE
+[2023-01-18T13:49:28.726588] [udr] [udr_mysql] [info ] Query Authentication Subscription
+[2023-01-18T13:49:28.726594] [udr] [udr_mysql] [info ] MySQL Query: SELECT * FROM AuthenticationSubscription WHERE ueid='208950000000031'
+[2023-01-18T13:49:28.726986] [udr] [udr_app] [info ] AuthenticationSubscription: {"algorithmId":"milenage","authenticationManagementField":"8000","authenticationMethod":"5G_AKA","encOpcKey":"63bfa50ee6523365ff14c1f45f88737d","encPermanentKey":"0C0A34601D4F07677303652C0462535B","protectionParameterId":"0C0A34601D4F07677303652C0462535B","sequenceNumber":{"lastIndexes":{"ausf":0},"sqn":"000000000060","sqnScheme":"NON_TIME_BASED"},"supi":"208950000000031"}
+[2023-01-18T13:49:28.727326] [udr] [udr_app] [info ] Store the Authentication Status data of a UE
+[2023-01-18T13:49:28.727332] [udr] [udr_mysql] [info ] MySQL query: SELECT * FROM AuthenticationStatus WHERE ueid='208950000000031'
+[2023-01-18T13:49:28.729458] [udr] [udr_mysql] [info ] MySQL query: INSERT INTO AuthenticationStatus SET ueid='208950000000031',nfInstanceId='400346f4-087e-40b1-a4cd-00566953999d',success=1,timeStamp='2023-01-18T12:49:28Z',authType='5G_AKA',servingNetworkName='5G:mnc095.mcc208.3gppnetwork.org',authRemovalInd=0
+[2023-01-18T13:49:28.730987] [udr] [udr_mysql] [info ] AuthenticationStatus PUT: {"authRemovalInd":false,"authType":"5G_AKA","nfInstanceId":"400346f4-087e-40b1-a4cd-00566953999d","servingNetworkName":"5G:mnc095.mcc208.3gppnetwork.org","success":true,"timeStamp":"2023-01-18T12:49:28Z"}
+[2023-01-18T13:49:28.730995] [udr] [udr_app] [info ] Successful stored the Authentication Status data of a UE
+[2023-01-18T13:49:28.805991] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:28.806026] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:28.806519] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:49:38.805990] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:38.806022] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:38.806501] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:49:48.816007] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:48.816072] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:48.816883] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:49:58.818000] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:49:58.818058] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:49:58.818736] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:50:08.624794] [udr] [udr_app] [info ] Retrieve the authentication subscription data of a UE
+[2023-01-18T13:50:08.624826] [udr] [udr_mysql] [info ] Query Authentication Subscription
+[2023-01-18T13:50:08.624836] [udr] [udr_mysql] [info ] MySQL Query: SELECT * FROM AuthenticationSubscription WHERE ueid='208950000000032'
+[2023-01-18T13:50:08.626087] [udr] [udr_app] [info ] AuthenticationSubscription: {"algorithmId":"milenage","authenticationManagementField":"8000","authenticationMethod":"5G_AKA","encOpcKey":"63bfa50ee6523365ff14c1f45f88737d","encPermanentKey":"0C0A34601D4F07677303652C0462535B","protectionParameterId":"0C0A34601D4F07677303652C0462535B","sequenceNumber":{"lastIndexes":{"ausf":0},"sqn":"000000000020","sqnScheme":"NON_TIME_BASED"},"supi":"208950000000032"}
+[2023-01-18T13:50:08.630083] [udr] [udr_app] [info ] Modify the authentication subscription data of a UE
+[2023-01-18T13:50:08.630120] [udr] [udr_mysql] [info ] MySQL Query: SELECT * from AuthenticationSubscription WHERE ueid='208950000000032'
+[2023-01-18T13:50:08.630919] [udr] [udr_mysql] [info ] MySQL Update Cmd UPDATE AuthenticationSubscription SET sequenceNumber='{"lastIndexes":{"ausf":0},"sqn":"000000000060","sqnScheme":"NON_TIME_BASED"}' WHERE ueid='208950000000032'
+[2023-01-18T13:50:08.633854] [udr] [udr_mysql] [info ] AuthenticationSubscription PATCH: [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:50:08.633914] [udr] [udr_app] [info ] Successful modified the Authentication subscription data of a UE
+[2023-01-18T13:50:08.644899] [udr] [udr_app] [info ] Retrieve the authentication subscription data of a UE
+[2023-01-18T13:50:08.644920] [udr] [udr_mysql] [info ] Query Authentication Subscription
+[2023-01-18T13:50:08.644930] [udr] [udr_mysql] [info ] MySQL Query: SELECT * FROM AuthenticationSubscription WHERE ueid='208950000000032'
+[2023-01-18T13:50:08.645561] [udr] [udr_app] [info ] AuthenticationSubscription: {"algorithmId":"milenage","authenticationManagementField":"8000","authenticationMethod":"5G_AKA","encOpcKey":"63bfa50ee6523365ff14c1f45f88737d","encPermanentKey":"0C0A34601D4F07677303652C0462535B","protectionParameterId":"0C0A34601D4F07677303652C0462535B","sequenceNumber":{"lastIndexes":{"ausf":0},"sqn":"000000000060","sqnScheme":"NON_TIME_BASED"},"supi":"208950000000032"}
+[2023-01-18T13:50:08.651866] [udr] [udr_app] [info ] Store the Authentication Status data of a UE
+[2023-01-18T13:50:08.651902] [udr] [udr_mysql] [info ] MySQL query: SELECT * FROM AuthenticationStatus WHERE ueid='208950000000032'
+[2023-01-18T13:50:08.652500] [udr] [udr_mysql] [info ] MySQL query: INSERT INTO AuthenticationStatus SET ueid='208950000000032',nfInstanceId='400346f4-087e-40b1-a4cd-00566953999d',success=1,timeStamp='2023-01-18T12:50:08Z',authType='5G_AKA',servingNetworkName='5G:mnc095.mcc208.3gppnetwork.org',authRemovalInd=0
+[2023-01-18T13:50:08.661655] [udr] [udr_mysql] [info ] AuthenticationStatus PUT: {"authRemovalInd":false,"authType":"5G_AKA","nfInstanceId":"400346f4-087e-40b1-a4cd-00566953999d","servingNetworkName":"5G:mnc095.mcc208.3gppnetwork.org","success":true,"timeStamp":"2023-01-18T12:50:08Z"}
+[2023-01-18T13:50:08.661709] [udr] [udr_app] [info ] Successful stored the Authentication Status data of a UE
+[2023-01-18T13:50:08.864989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:08.865024] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:08.865549] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:50:18.880988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:18.881019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:18.881531] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:50:28.881988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:28.882019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:28.882547] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:50:38.882992] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:38.883027] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:38.883716] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:50:48.887991] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:48.888020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:48.888581] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:50:58.895004] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:50:58.895067] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:50:58.895783] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:51:01.356745] [udr] [udr_app] [info ] Retrieve the authentication subscription data of a UE
+[2023-01-18T13:51:01.356760] [udr] [udr_mysql] [info ] Query Authentication Subscription
+[2023-01-18T13:51:01.356766] [udr] [udr_mysql] [info ] MySQL Query: SELECT * FROM AuthenticationSubscription WHERE ueid='208950000000033'
+[2023-01-18T13:51:01.357482] [udr] [udr_app] [info ] AuthenticationSubscription: {"algorithmId":"milenage","authenticationManagementField":"8000","authenticationMethod":"5G_AKA","encOpcKey":"63bfa50ee6523365ff14c1f45f88737d","encPermanentKey":"0C0A34601D4F07677303652C0462535B","protectionParameterId":"0C0A34601D4F07677303652C0462535B","sequenceNumber":{"lastIndexes":{"ausf":0},"sqn":"000000000020","sqnScheme":"NON_TIME_BASED"},"supi":"208950000000033"}
+[2023-01-18T13:51:01.358259] [udr] [udr_app] [info ] Modify the authentication subscription data of a UE
+[2023-01-18T13:51:01.358267] [udr] [udr_mysql] [info ] MySQL Query: SELECT * from AuthenticationSubscription WHERE ueid='208950000000033'
+[2023-01-18T13:51:01.358456] [udr] [udr_mysql] [info ] MySQL Update Cmd UPDATE AuthenticationSubscription SET sequenceNumber='{"lastIndexes":{"ausf":0},"sqn":"000000000060","sqnScheme":"NON_TIME_BASED"}' WHERE ueid='208950000000033'
+[2023-01-18T13:51:01.360166] [udr] [udr_mysql] [info ] AuthenticationSubscription PATCH: [{"from":"","op":"replace","path":"","value":"{\"lastIndexes\":{\"ausf\":0},\"sqn\":\"000000000060\",\"sqnScheme\":\"NON_TIME_BASED\"}"}]
+[2023-01-18T13:51:01.360171] [udr] [udr_app] [info ] Successful modified the Authentication subscription data of a UE
+[2023-01-18T13:51:01.362227] [udr] [udr_app] [info ] Retrieve the authentication subscription data of a UE
+[2023-01-18T13:51:01.362233] [udr] [udr_mysql] [info ] Query Authentication Subscription
+[2023-01-18T13:51:01.362237] [udr] [udr_mysql] [info ] MySQL Query: SELECT * FROM AuthenticationSubscription WHERE ueid='208950000000033'
+[2023-01-18T13:51:01.362465] [udr] [udr_app] [info ] AuthenticationSubscription: {"algorithmId":"milenage","authenticationManagementField":"8000","authenticationMethod":"5G_AKA","encOpcKey":"63bfa50ee6523365ff14c1f45f88737d","encPermanentKey":"0C0A34601D4F07677303652C0462535B","protectionParameterId":"0C0A34601D4F07677303652C0462535B","sequenceNumber":{"lastIndexes":{"ausf":0},"sqn":"000000000060","sqnScheme":"NON_TIME_BASED"},"supi":"208950000000033"}
+[2023-01-18T13:51:01.362731] [udr] [udr_app] [info ] Store the Authentication Status data of a UE
+[2023-01-18T13:51:01.362738] [udr] [udr_mysql] [info ] MySQL query: SELECT * FROM AuthenticationStatus WHERE ueid='208950000000033'
+[2023-01-18T13:51:01.362880] [udr] [udr_mysql] [info ] MySQL query: INSERT INTO AuthenticationStatus SET ueid='208950000000033',nfInstanceId='400346f4-087e-40b1-a4cd-00566953999d',success=1,timeStamp='2023-01-18T12:51:01Z',authType='5G_AKA',servingNetworkName='5G:mnc095.mcc208.3gppnetwork.org',authRemovalInd=0
+[2023-01-18T13:51:01.363954] [udr] [udr_mysql] [info ] AuthenticationStatus PUT: {"authRemovalInd":false,"authType":"5G_AKA","nfInstanceId":"400346f4-087e-40b1-a4cd-00566953999d","servingNetworkName":"5G:mnc095.mcc208.3gppnetwork.org","success":true,"timeStamp":"2023-01-18T12:51:01Z"}
+[2023-01-18T13:51:01.363962] [udr] [udr_app] [info ] Successful stored the Authentication Status data of a UE
+[2023-01-18T13:51:08.914988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:08.915019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:08.915483] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:51:18.924988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:18.925019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:18.925491] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:51:28.927989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:28.928021] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:28.928568] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:51:38.936990] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:38.937023] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:38.937573] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:51:48.940989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:48.941020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:48.941523] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:51:58.942997] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:51:58.943028] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:51:58.943523] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:52:08.942989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:08.943019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:08.943504] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:52:18.942988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:18.943019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:18.943503] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:52:28.943989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:28.944020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:28.944526] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:52:38.944995] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:38.945043] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:38.945551] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:52:48.946988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:48.947018] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:48.947522] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:52:58.951989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:52:58.952020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:52:58.952553] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:53:08.959993] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:08.960036] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:08.960554] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:53:18.969988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:18.970029] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:18.970514] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:53:28.971988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:28.972022] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:28.972501] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:53:38.983988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:38.984023] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:38.984556] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:53:49.000987] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:49.001019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:49.001482] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:53:59.003988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:53:59.004022] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:53:59.004479] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:54:09.015012] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:09.015061] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:09.015707] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:54:19.018988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:19.019018] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:19.019469] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:54:29.020989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:29.021022] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:29.021577] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:54:39.026988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:39.027020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:39.027537] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:54:49.031988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:49.032020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:49.032483] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:54:59.033988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:54:59.034019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:54:59.034503] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:55:09.041992] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:09.042032] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:09.042643] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:55:19.043987] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:19.044018] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:19.044533] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:55:29.044988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:29.045021] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:29.045505] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:55:39.046989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:39.047018] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:39.047506] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:55:49.046988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:49.047019] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:49.047579] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:55:59.048990] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:55:59.049020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:55:59.049575] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:56:09.049989] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:09.050021] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:09.050504] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:56:19.056992] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:19.057024] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:19.057513] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:56:29.056988] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:29.057020] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:29.057523] [udr] [udr_app] [info ] Get response with HTTP code (204)
+[2023-01-18T13:56:39.064007] [udr] [udr_nrf] [info ] Sending NF heartbeat request
+[2023-01-18T13:56:39.064060] [udr] [udr_app] [info ] Send HTTP message with body [{"op":"replace","path":"/nfStatus","value":"REGISTERED"}]
+[2023-01-18T13:56:39.064644] [udr] [udr_app] [info ] Get response with HTTP code (204)
+Caught signal 15
+[2023-01-18T13:56:40.880698] [udr] [system ] [start] exiting
+Freeing Allocated memory...
+UDR API Server memory done
+UDR APP memory done
+Freeing allocated memory done

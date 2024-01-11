@@ -1,0 +1,423 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.openairinterface.org/?page_id=698
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+// Location of the CN executor node
+def cn_ci_host = params.Host_CN_CI_Server
+def cn_ci_resource = params.DockerContainers
+def upstreamEvent = false
+
+// Variables that can used in main pipeline and in functions
+NRF=0
+AMF=1
+SMF=2
+UPF=3
+AUSF=4
+UDM=5
+UDR=6
+
+// Default tags / branches  --> could be passed on by upstream job
+imageNames = ["oai-nrf", "oai-amf", "oai-smf", "oai-upf", "oai-ausf", "oai-udm", "oai-udr"]
+repoNames = ["oai-cn5g-nrf", "oai-cn5g-amf", "oai-cn5g-smf", "oai-cn5g-upf", "oai-cn5g-ausf", "oai-cn5g-udm", "oai-cn5g-udr"]
+branchNames = ["", "", "", "", "", "", ""]
+imageTags = ["", "", "", "", "", "", ""]
+upstreamJobs = [false, false, false, false, false, false, false]
+pulledImages = [false, false, false, false, false, false, false]
+
+// Which OMEC-GNBSIM TAG to use
+ngapTesterTag = params.ngapTesterTag
+upstreamTagToUse = params.upstreamTagToUse
+
+//-------------------------------------------------------------------------------
+// Pipeline start
+pipeline {
+  agent {
+    label cn_ci_host
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    lock(cn_ci_resource)
+  }
+  stages {
+    stage ('Verify Parameters') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          echo "Node       is ${NODE_NAME}"
+
+          // Find out the cause of the trigger
+          for (cause in currentBuild.getBuildCauses()) {
+            if (cause.toString().contains('UpstreamCause')) {
+              upstreamEvent = true
+            }
+            if (cause.toString().contains('OAI-CN5G-NRF')) {
+              upstreamJobs[NRF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-AMF')) {
+              upstreamJobs[AMF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-SMF')) {
+              upstreamJobs[SMF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-UPF')) {
+              upstreamJobs[UPF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-AUSF')) {
+              upstreamJobs[AUSF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-UDM')) {
+              upstreamJobs[UDM] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-UDR')) {
+              upstreamJobs[UDR] = true
+            }
+          }
+          sh "git clean -x -d -ff > /dev/null 2>&1"
+          sh "git submodule foreach --recursive 'git clean -x -d -ff' > /dev/null 2>&1"
+          sh "git submodule deinit --force --all > /dev/null 2>&1"
+          // For any upstream job (PR or post-merge), let run on certified tag.
+          if (upstreamEvent) {
+            sh 'git checkout -f ' + upstreamTagToUse
+          }
+          sh 'git submodule update --init --recursive ci-scripts/common'
+          sh "mkdir -p archives"
+
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            if (ii == NRF) {
+              branchNames[NRF] = params.NRF_BRANCH
+              imageTags[NRF] = params.NRF_TAG
+              if (upstreamEvent && upstreamJobs[NRF]) {
+                echo "Upstream Job passed NRF_TAG to use: ${imageTags[NRF]}"
+                echo "Upstream Job passed NRF_BRANCH to use: ${branchNames[NRF]}"
+              }
+            }
+            if (ii == AMF) {
+              branchNames[AMF] = params.AMF_BRANCH
+              imageTags[AMF] = params.AMF_TAG
+              if (upstreamEvent && upstreamJobs[AMF]) {
+                echo "Upstream Job passed AMF_TAG to use: ${imageTags[AMF]}"
+                echo "Upstream Job passed AMF_BRANCH to use: ${branchNames[AMF]}"
+              }
+            }
+            if (ii == SMF) {
+              branchNames[SMF] = params.SMF_BRANCH
+              imageTags[SMF] = params.SMF_TAG
+              if (upstreamEvent && upstreamJobs[SMF]) {
+                echo "Upstream Job passed SMF_TAG to use: ${imageTags[SMF]}"
+                echo "Upstream Job passed SMF_BRANCH to use: ${branchNames[SMF]}"
+              }
+            }
+            if (ii == UPF) {
+              branchNames[UPF] = params.UPF_BRANCH
+              imageTags[UPF] = params.UPF_TAG
+              if (upstreamEvent && upstreamJobs[UPF]) {
+                echo "Upstream Job passed UPF_TAG to use: ${imageTags[UPF]}"
+                echo "Upstream Job passed UPF_BRANCH to use: ${branchNames[UPF]}"
+              }
+            }
+            if (ii == AUSF) {
+              branchNames[AUSF] = params.AUSF_BRANCH
+              imageTags[AUSF] = params.AUSF_TAG
+              if (upstreamEvent && upstreamJobs[AUSF]) {
+                echo "Upstream Job passed AUSF_TAG to use: ${imageTags[AUSF]}"
+                echo "Upstream Job passed AUSF_BRANCH to use: ${branchNames[AUSF]}"
+              }
+            }
+            if (ii == UDM) {
+              branchNames[UDM] = params.UDM_BRANCH
+              imageTags[UDM] = params.UDM_TAG
+              if (upstreamEvent && upstreamJobs[UDM]) {
+                echo "Upstream Job passed UDM_TAG to use: ${imageTags[UDM]}"
+                echo "Upstream Job passed UDM_BRANCH to use: ${branchNames[UDM]}"
+              }
+            }
+            if (ii == UDR) {
+              branchNames[UDR] = params.UDR_BRANCH
+              imageTags[UDR] = params.UDR_TAG
+              if (upstreamEvent && upstreamJobs[UDR]) {
+                echo "Upstream Job passed UDR_TAG to use: ${imageTags[UDR]}"
+                echo "Upstream Job passed UDR_BRANCH to use: ${branchNames[UDR]}"
+              }
+            }
+          }
+
+          // On Ubuntu servers, we shall pull from private local registry
+          if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
+            pullFromSelfix = true
+            try {
+              // Login
+              sh 'docker login -u oaicicd -p oaicicd selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
+            } catch (Exception e) {
+              echo 'Problem w/ selfix registry. Let see if we can use local images'
+              pullFromSelfix = false
+            }
+            if (pullFromSelfix) {
+              // We will try to pull from selfix registry.
+              // If the NF CI is yet ready, it's OK, it will fail but keep working with local registry
+              for (ii = 0; ii < imageNames.size(); ii++) {
+                imageTags[ii] = pullImageFromSelfix(ii, imageNames[ii], imageTags[ii], branchNames[ii])
+              }
+              pullImageFromSelfix(-1, 'ngap-tester', ngapTesterTag, 'develop')
+              // Logout
+              sh 'docker logout selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
+            }
+          }
+
+          // Verify that the images are available
+          imageStatus = 0
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            imageStatus += checkImageInfo(imageNames[ii], imageTags[ii])
+          }
+          imageStatus += checkImageInfo('ngap-tester', ngapTesterTag)
+          if (imageStatus > 0) {
+            error ("Some images are not present!")
+          }
+        }
+      }
+    }
+    stage ('Deploy OAI-CN5G in Basic-NRF') {
+      steps {
+        script {
+          sh 'cp -Rf /opt/ngap-tester-v1.6/test/* ci-scripts/docker-compose/ngap-tester/'
+          // Let use the official docker-compose and adapt it to NGAP-Tester
+          updateDockerCompose('docker-compose/docker-compose-basic-nrf.yaml', ngapTesterTag)
+          adaptForNGAPtester('docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml up -d'
+            sh '../ci-scripts/checkContainerStatus.py --container_name mysql --timeout 40'
+            sh '../ci-scripts/checkContainerStatus.py --container_name oai-upf --timeout 40'
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml ps -a'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    stage ('Tests') {
+      steps {
+        script {
+          dir ('ci-scripts/docker-compose/ngap-tester') {
+            sh 'docker-compose -f docker-compose-ngap-tester.yaml up -d'
+          }
+          sh 'docker logs ngap-tester > archives/ngap-tester.log 2>&1'
+          sh 'docker exec ngap-tester /bin/sh -c "./ngap-tester list -a" > archives/test-list.log 2>&1'
+          tcList = sh returnStdout: true, script: "grep ' TC' archives/test-list.log | awk {'print \$4'}"
+          String[] testScenarios = tcList.split("\\n")
+          for (testCase in testScenarios) {
+            echo "Test-Case is ${testCase}"
+            timeout(4) {
+              sh 'sudo rm -f /tmp/oai-cn5g-ngap-tester.*'
+              sh 'nohup sudo tshark -i demo-oai -f "sctp or port 80 or port 8080 or port 8805 or icmp or port 3306 or port 2152" -w /tmp/oai-cn5g-ngap-tester.pcap > /tmp/oai-cn5g-ngap-tester.log 2>&1 &'
+              sh './ci-scripts/checkTsharkCapture.py --log_file /tmp/oai-cn5g-ngap-tester.log --timeout 30'
+              sh 'sudo chmod 666 /tmp/oai-cn5g-ngap-tester.*'
+              try {
+                sh "docker exec ngap-tester /bin/sh -c './ngap-tester run -o ${testCase}' > archives/${testCase}.log 2>&1"
+                echo "Test-Case #${testCase} seems to have COMPLETED (FAILED OR PASSED)!"
+              } catch (Exception e) {
+                echo "Test-Case #${testCase} seems to have TIME-OUT or FAILED!"
+              }
+              sleep 2
+              sh 'sudo killall -9 tshark'
+              sleep 1
+              sh "cp /tmp/oai-cn5g-ngap-tester.pcap archives/${testCase}.pcap"
+            }
+          }
+          dir ('ci-scripts/docker-compose/ngap-tester') {
+            sh 'docker-compose -f docker-compose-ngap-tester.yaml down -t 0'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            dir ('ci-scripts/docker-compose/ngap-tester') {
+              sh 'docker-compose -f docker-compose-ngap-tester.yaml down -t 0'
+            }
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    stage ('Undeploy OAI-CN5G') {
+      steps {
+        script {
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+          }
+          sleep 5
+          retrieveLogs('archives', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+          }
+          cleanUpDockerCompose()
+        }
+      }
+    }
+    stage ('Mandatory Tests Check') {
+      steps {
+        script {
+          // Here it will test if all the mandatory tests passed
+          // If not, it will return an error and make the whole pipeline fail
+          sh './ci-scripts/checkNgapTesterHtmlReport.py --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        // Zipping all archived log files
+        sh "zip -r -qq cn5g_fed_ngap_test.zip archives"
+        // Currently no public artifacting on the logs and pcap
+        sh "chmod 666 cn5g_fed_ngap_test.zip"
+        sh "cp cn5g_fed_ngap_test.zip /opt/ngap-tester-logs/cn5g_fed-${JOB_NAME}-${BUILD_ID}.zip"
+        // We generate HTML report if we did not already
+        // we shall not fail in post section
+        if (!fileExists('test_results_oai_cn5g_ngap_tester.html')) {
+          sh './ci-scripts/checkNgapTesterHtmlReport.py --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL + ' || true'
+        }
+        if (fileExists('test_results_oai_cn5g_ngap_tester.html')) {
+          archiveArtifacts artifacts: 'test_results_oai_cn5g_ngap_tester.html'
+        }
+      }
+    }
+    cleanup {
+      script {
+        sh 'docker volume prune --force'
+        // Removing the images that we pulled.
+        for (ii = 0; ii < imageNames.size(); ii++) {
+          if (pulledImages[ii]) {
+            sh 'docker rmi ' + imageNames[ii] + ':' + imageTags[ii]
+          }
+        }
+      }
+    }
+  }
+}
+
+def pullImageFromSelfix(idx, imageName, imageTag, branchName) {
+  if ((imageTag == 'develop') && (branchName == 'develop')) {
+    try {
+      tag = sh returnStdout: true, script: './ci-scripts/retrieveLatestTagOnPrivateRepo.py --repo-name ' + imageName
+      tag = tag.trim()
+    } catch (Exception e) {
+      return imageTag
+    }
+  } else {
+    tag = imageTag
+  }
+  // We may have wrong image tag?
+  try {
+    sh 'docker pull selfix.sboai.cs.eurecom.fr/' + imageName + ':' + tag
+    sh 'docker image tag selfix.sboai.cs.eurecom.fr/' + imageName + ':' + tag + ' ' + imageName + ':' + tag
+    sh 'docker rmi selfix.sboai.cs.eurecom.fr/' + imageName + ':' + tag
+    if (idx != -1) {
+      pulledImages[idx] = true
+    }
+  } catch (Exception e) {
+    echo "${imageName} Image tag to test (${imageName}:${tag} does not exist on selfix private registry!"
+    tag = imageTag
+  }
+  return tag
+}
+
+def checkImageInfo(imageName, origTag) {
+  status = 0
+  sh "echo 'Tested Tag is ${imageName}:${origTag}' > archives/${imageName}-image-info.log"
+  try {
+    sh "docker image inspect --format='Size = {{.Size}} bytes' ${imageName}:${origTag} >> archives/${imageName}-image-info.log"
+    sh "docker image inspect --format='Date = {{.Created}}' ${imageName}:${origTag} >> archives/${imageName}-image-info.log"
+  } catch (Exception e) {
+    echo "${imageName} Image tag to test (${imageName}:${origTag} does not exist!"
+    status = 1
+  }
+  return status
+}
+
+def updateDockerCompose(filename, lRanTag) {
+  for (ii = 0; ii < imageNames.size(); ii++) {
+    sh 'sed -i -e "s@oaisoftwarealliance/' + imageNames[ii] + ':v2.0.0@' + imageNames[ii] + ':' + imageTags[ii] + '@" ' + filename
+  }
+  sh 'sed -i -e "s@oaisoftwarealliance/trf-gen-cn5g:latest@trf-gen-cn5g:latest@" ' + filename
+  sh 'sed -i -e "s@ngap-tester:develop@ngap-tester:' + lRanTag + '@" ci-scripts/docker-compose/ngap-tester/docker-compose-ngap-tester.yaml'
+}
+
+def adaptForNGAPtester(filename, confname) {
+  // NGAP Tester only works in HTTP/1 and port 80
+  sh 'sed -i -e "s@NETWORK_UE_IP=12.1.1.0/24@NETWORK_UE_IP=13.1.0.0/20@" ' + filename
+  sh 'sed -i -e "s@HTTP_VERSION=2@HTTP_VERSION=1@"                       ' + filename
+  sh 'sed -i -e "s@NRF_PORT=8080@NRF_PORT=80@"                           ' + filename
+  sh 'sed -i -e "s@ip route add 12.1.1.0/24@ip route add 13.1.0.0/20@"   ' + filename
+  sh 'sed -i -e "s@grep 12.1.1@grep 13.1.0@"                             ' + filename
+  sh 'sed -i -e "s@port: 8080@port: 80@"                                 ' + confname
+  sh 'sed -i -e "s@http_version: 2@http_version: 1@"                     ' + confname
+  sh 'sed -i -e "s@enable_smf_selection: yes@enable_smf_selection: no@"  ' + confname
+  sh 'sed -i -e "s@12.1.1.0/26@13.1.0.0/20@"                             ' + confname
+  sh 'sed -i -e "s@NIA2@NIA3@" -e "s@NIA0@NIA2@"                         ' + confname
+  sh 'grep -v NIA3 ' + confname + ' | grep -v NEA1 > tmp.yaml'
+  sh 'mv tmp.yaml ' + confname
+}
+
+def cleanUpDockerCompose() {
+  sh 'git checkout .'
+  sh 'docker network prune --force'
+  sh 'docker volume prune --force'
+}
+
+def retrieveLogs(logPath, dcFileName, ycFileName) {
+  sh "mkdir -p ${logPath}"
+  sh "cp ${dcFileName} ${logPath}"
+  sh "cp ${ycFileName} ${logPath}"
+  sh "docker logs oai-nrf > ${logPath}/oai-nrf.log 2>&1"
+  sh "docker logs oai-udr > ${logPath}/oai-udr.log 2>&1"
+  sh "docker logs oai-udm > ${logPath}/oai-udm.log 2>&1"
+  sh "docker logs oai-ausf > ${logPath}/oai-ausf.log 2>&1"
+  sh "docker logs oai-amf > ${logPath}/oai-amf.log 2>&1"
+  sh "docker logs oai-smf > ${logPath}/oai-smf.log 2>&1"
+  sh "docker logs oai-upf > ${logPath}/oai-upf.log 2>&1"
+}

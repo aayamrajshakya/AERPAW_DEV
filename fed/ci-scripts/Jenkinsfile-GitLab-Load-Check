@@ -1,0 +1,596 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.openairinterface.org/?page_id=698
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+// Location of the CN executor node
+def cn_ci_host = params.Host_CN_CI_Server
+def cn_ci_resource = params.DockerContainers
+def upstreamEvent = false
+
+// Variables that can used in main pipeline and in functions
+NRF=0
+AMF=1
+SMF=2
+UPF=3
+AUSF=4
+UDM=5
+UDR=6
+
+// Default tags / branches  --> could be passed on by upstream job
+imageNames = ["oai-nrf", "oai-amf", "oai-smf", "oai-upf", "oai-ausf", "oai-udm", "oai-udr"]
+repoNames = ["oai-cn5g-nrf", "oai-cn5g-amf", "oai-cn5g-smf", "oai-cn5g-upf", "oai-cn5g-ausf", "oai-cn5g-udm", "oai-cn5g-udr"]
+branchNames = ["", "", "", "", "", "", ""]
+imageTags = ["", "", "", "", "", "", ""]
+upstreamJobs = [false, false, false, false, false, false, false]
+pulledImages = [false, false, false, false, false, false, false]
+
+// Which OMEC-GNBSIM TAG to use
+gnbsimTag = params.gnbsimTag
+upstreamTagToUse = params.upstreamTagToUse
+
+// Flags
+doTsharkCaptureRegistration = true
+doTsharkCapturePDUSession = true
+doTsharkCapturePDURelease = true
+
+//-------------------------------------------------------------------------------
+// Pipeline start
+pipeline {
+  agent {
+    label cn_ci_host
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+    lock(cn_ci_resource)
+  }
+  stages {
+    stage ('Verify Parameters') {
+      steps {
+        script {
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          echo "Node       is ${NODE_NAME}"
+
+          // Find out the cause of the trigger
+          for (cause in currentBuild.getBuildCauses()) {
+            if (cause.toString().contains('UpstreamCause')) {
+              upstreamEvent = true
+            }
+            if (cause.toString().contains('OAI-CN5G-NRF')) {
+              upstreamJobs[NRF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-AMF')) {
+              upstreamJobs[AMF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-SMF')) {
+              upstreamJobs[SMF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-UPF')) {
+              upstreamJobs[UPF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-AUSF')) {
+              upstreamJobs[AUSF] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-UDM')) {
+              upstreamJobs[UDM] = true
+            }
+            if (cause.toString().contains('OAI-CN5G-UDR')) {
+              upstreamJobs[UDR] = true
+            }
+          }
+          sh "git clean -x -d -ff > /dev/null 2>&1"
+          sh "git submodule foreach --recursive 'git clean -x -d -ff' > /dev/null 2>&1"
+          sh "git submodule deinit --force --all > /dev/null 2>&1"
+          // For any upstream job (PR or post-merge), let run on certified tag.
+          if (upstreamEvent) {
+            sh 'git checkout -f ' + upstreamTagToUse
+          }
+          sh 'git submodule update --init --recursive ci-scripts/common'
+          sh "mkdir -p archives"
+
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            if (ii == NRF) {
+              branchNames[NRF] = params.NRF_BRANCH
+              imageTags[NRF] = params.NRF_TAG
+              if (upstreamEvent && upstreamJobs[NRF]) {
+                echo "Upstream Job passed NRF_TAG to use: ${imageTags[NRF]}"
+                echo "Upstream Job passed NRF_BRANCH to use: ${branchNames[NRF]}"
+              }
+            }
+            if (ii == AMF) {
+              branchNames[AMF] = params.AMF_BRANCH
+              imageTags[AMF] = params.AMF_TAG
+              if (upstreamEvent && upstreamJobs[AMF]) {
+                echo "Upstream Job passed AMF_TAG to use: ${imageTags[AMF]}"
+                echo "Upstream Job passed AMF_BRANCH to use: ${branchNames[AMF]}"
+              }
+            }
+            if (ii == SMF) {
+              branchNames[SMF] = params.SMF_BRANCH
+              imageTags[SMF] = params.SMF_TAG
+              if (upstreamEvent && upstreamJobs[SMF]) {
+                echo "Upstream Job passed SMF_TAG to use: ${imageTags[SMF]}"
+                echo "Upstream Job passed SMF_BRANCH to use: ${branchNames[SMF]}"
+              }
+            }
+            if (ii == UPF) {
+              branchNames[UPF] = params.UPF_BRANCH
+              imageTags[UPF] = params.UPF_TAG
+              if (upstreamEvent && upstreamJobs[UPF]) {
+                echo "Upstream Job passed UPF_TAG to use: ${imageTags[UPF]}"
+                echo "Upstream Job passed UPF_BRANCH to use: ${branchNames[UPF]}"
+              }
+            }
+            if (ii == AUSF) {
+              branchNames[AUSF] = params.AUSF_BRANCH
+              imageTags[AUSF] = params.AUSF_TAG
+              if (upstreamEvent && upstreamJobs[AUSF]) {
+                echo "Upstream Job passed AUSF_TAG to use: ${imageTags[AUSF]}"
+                echo "Upstream Job passed AUSF_BRANCH to use: ${branchNames[AUSF]}"
+              }
+            }
+            if (ii == UDM) {
+              branchNames[UDM] = params.UDM_BRANCH
+              imageTags[UDM] = params.UDM_TAG
+              if (upstreamEvent && upstreamJobs[UDM]) {
+                echo "Upstream Job passed UDM_TAG to use: ${imageTags[UDM]}"
+                echo "Upstream Job passed UDM_BRANCH to use: ${branchNames[UDM]}"
+              }
+            }
+            if (ii == UDR) {
+              branchNames[UDR] = params.UDR_BRANCH
+              imageTags[UDR] = params.UDR_TAG
+              if (upstreamEvent && upstreamJobs[UDR]) {
+                echo "Upstream Job passed UDR_TAG to use: ${imageTags[UDR]}"
+                echo "Upstream Job passed UDR_BRANCH to use: ${branchNames[UDR]}"
+              }
+            }
+          }
+
+          // On Ubuntu servers, we shall pull from private local registry
+          if ((cn_ci_host == 'selfix') || (cn_ci_host == 'orion')) {
+            pullFromSelfix = true
+            try {
+              // Login
+              sh 'docker login -u oaicicd -p oaicicd selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
+            } catch (Exception e) {
+              echo 'Problem w/ selfix registry. Let see if we can use local images'
+              pullFromSelfix = false
+            }
+            if (pullFromSelfix) {
+              // We will try to pull from selfix registry.
+              // If the NF CI is yet ready, it's OK, it will fail but keep working with local registry
+              for (ii = 0; ii < imageNames.size(); ii++) {
+                imageTags[ii] = pullImageFromSelfix(ii, imageNames[ii], imageTags[ii], branchNames[ii])
+              }
+              pullImageFromSelfix(-1, '5gc-gnbsim', gnbsimTag, 'main')
+              // Logout
+              sh 'docker logout selfix.sboai.cs.eurecom.fr > /dev/null 2>&1'
+            }
+          }
+
+          // Verify that the images are available
+          imageStatus = 0
+          for (ii = 0; ii < imageNames.size(); ii++) {
+            imageStatus += checkImageInfo(imageNames[ii], imageTags[ii])
+          }
+          imageStatus += checkImageInfo('5gc-gnbsim', gnbsimTag)
+          if (imageStatus > 0) {
+            error ("Some images are not present!")
+          }
+        }
+      }
+    }
+    stage ('Deploy OAI-CN5G in Basic variant - Registration Test') {
+      steps {
+        script {
+          echo 'Silencing all NFs to reduce size of logs'
+          sh './ci-scripts/silentCN5G-NF.py --docker-compose-file docker-compose/conf/basic_nrf_config.yaml --all-log-level error'
+          updateDockerCompose('docker-compose/docker-compose-basic-nrf.yaml', gnbsimTag)
+          dir ('docker-compose') {
+            echo 'Adding 16000 Users to database'
+            sh '../ci-scripts/addUsersToDatabase.py --database-file database/oai_db2.sql --nb-users 16000'
+            sh '../ci-scripts/increaseDnnRange.py --docker-compose-file docker-compose-basic-nrf.yaml --nb-users 16000'
+            sh '../ci-scripts/increaseDnnRange.py --docker-compose-file conf/basic_nrf_config.yaml --nb-users 16000'
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml up -d mysql'
+            sleep 2
+            // No tshark: too big
+            sh 'sudo rm -f /tmp/oai-cn5g-load-test.*'
+            if (doTsharkCaptureRegistration) {
+              sh 'nohup sudo tshark -i demo-oai -f "sctp or port 80 or port 8080 or port 8805 or icmp or port 3306" -w /tmp/oai-cn5g-load-test.pcap > /tmp/oai-cn5g-load-test.log 2>&1 &'
+              sh '../ci-scripts/checkTsharkCapture.py --log_file /tmp/oai-cn5g-load-test.log --timeout 30'
+              sh 'sudo chmod 666 /tmp/oai-cn5g-load-test.*'
+            }
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml up -d'
+            sh '../ci-scripts/checkContainerStatus.py --container_name mysql --timeout 40'
+            sh '../ci-scripts/checkContainerStatus.py --container_name oai-upf --timeout 40'
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml ps -a'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives/registration-test', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    // Registration Test should not fail
+    stage ('Registration Test') {
+      steps {
+        script {
+          dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+            sh 'sed -i -e "s@TEST_REGISTER@True@" -e "s@NB_REGISTRATIONS@625@" omec-gnbsim-config-*.yaml'
+            sh 'sed -i -e "s@TEST_PDU_SESSION@False@" -e "s@NB_PDU_SESSIONS@10@" omec-gnbsim-config-*.yaml'
+            sh 'docker-compose -f docker-compose-omec-gnbsim.yaml up -d'
+            // Test should be finished in 150 seconds
+            sh '../../checkOmecGnbsimStatus.py --timeout 250'
+          }
+          retrieveGnbsimLogs('archives/registration-test', 'ci-scripts/docker-compose/load-test-gnbsim')
+          dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+            sh 'docker-compose -f docker-compose-omec-gnbsim.yaml down -t 0'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            retrieveGnbsimLogs('archives/registration-test', 'ci-scripts/docker-compose/load-test-gnbsim')
+            dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+              sh 'docker-compose -f docker-compose-omec-gnbsim.yaml down -t 0'
+            }
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives/registration-test', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    stage ('Undeploy OAI-CN5G - Registration Test') {
+      steps {
+        script {
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+          }
+          sleep 5
+          retrieveLogs('archives/registration-test', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+          }
+          cleanUpDockerCompose()
+        }
+      }
+    }
+    stage ('Deploy OAI-CN5G in Basic variant - PDU Sess Est Test') {
+      steps {
+        script {
+          echo 'Silencing all NFs to reduce size of logs'
+          sh './ci-scripts/silentCN5G-NF.py --docker-compose-file docker-compose/conf/basic_nrf_config.yaml --all-log-level error'
+          updateDockerCompose('docker-compose/docker-compose-basic-nrf.yaml', gnbsimTag)
+          dir ('docker-compose') {
+            echo 'Adding 16000 Users to database'
+            sh '../ci-scripts/addUsersToDatabase.py --database-file database/oai_db2.sql --nb-users 16000'
+            sh '../ci-scripts/increaseDnnRange.py --docker-compose-file docker-compose-basic-nrf.yaml --nb-users 16000'
+            sh '../ci-scripts/increaseDnnRange.py --docker-compose-file conf/basic_nrf_config.yaml --nb-users 16000'
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml up -d mysql'
+            sleep 2
+            sh 'sudo rm -f /tmp/oai-cn5g-load-test.*'
+            if (doTsharkCapturePDUSession) {
+              sh 'nohup sudo tshark -i demo-oai -f "sctp or port 80 or port 8080 or port 8805 or icmp or port 3306 or port 2152" -w /tmp/oai-cn5g-load-test.pcap > /tmp/oai-cn5g-load-test.log 2>&1 &'
+              sh '../ci-scripts/checkTsharkCapture.py --log_file /tmp/oai-cn5g-load-test.log --timeout 30'
+              sh 'sudo chmod 666 /tmp/oai-cn5g-load-test.*'
+            }
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml up -d'
+            sh '../ci-scripts/checkContainerStatus.py --container_name mysql --timeout 40'
+            sh '../ci-scripts/checkContainerStatus.py --container_name oai-upf --timeout 40'
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml ps -a'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives/pdu-sess-est-test', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    // PDU Session Establishment Test should not fail
+    stage ('PDU Session Establishment Test') {
+      steps {
+        script {
+          dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+            sh 'sed -i -e "s@TEST_REGISTER@False@" -e "s@NB_REGISTRATIONS@10@" omec-gnbsim-config-*.yaml'
+            sh 'sed -i -e "s@TEST_PDU_SESSION@True@" -e "s@NB_PDU_SESSIONS@125@" omec-gnbsim-config-*.yaml'
+            sh 'docker-compose -f docker-compose-omec-gnbsim.yaml up -d'
+            // One UE takes 3.7 seconds to finish (3 seconds for the traffic test)
+            // 125 UE x 3.7 = 460 seconds (ie 8 minutes)
+            sh '../../checkOmecGnbsimStatus.py --timeout 500'
+          }
+          retrieveGnbsimLogs('archives/pdu-sess-est-test', 'ci-scripts/docker-compose/load-test-gnbsim')
+          dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+            sh 'docker-compose -f docker-compose-omec-gnbsim.yaml down -t 0'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            retrieveGnbsimLogs('archives/pdu-sess-est-test', 'ci-scripts/docker-compose/load-test-gnbsim')
+            dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+              sh 'docker-compose -f docker-compose-omec-gnbsim.yaml down -t 0'
+            }
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives/pdu-sess-est-test', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    stage ('Undeploy OAI-CN5G - PDU Sess Est Test') {
+      steps {
+        script {
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+          }
+          sleep 5
+          retrieveLogs('archives/pdu-sess-est-test', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+          }
+          cleanUpDockerCompose()
+        }
+      }
+    }
+    stage ('Deploy OAI-CN5G in Basic variant - Deregistration Test') {
+      steps {
+        script {
+          echo 'Silencing all NFs to reduce size of logs'
+          sh './ci-scripts/silentCN5G-NF.py --docker-compose-file docker-compose/conf/basic_nrf_config.yaml --all-log-level error'
+          updateDockerCompose('docker-compose/docker-compose-basic-nrf.yaml', gnbsimTag)
+          dir ('docker-compose') {
+            echo 'Adding 16000 Users to database'
+            sh '../ci-scripts/addUsersToDatabase.py --database-file database/oai_db2.sql --nb-users 16000'
+            sh '../ci-scripts/increaseDnnRange.py --docker-compose-file docker-compose-basic-nrf.yaml --nb-users 16000'
+            sh '../ci-scripts/increaseDnnRange.py --docker-compose-file conf/basic_nrf_config.yaml --nb-users 16000'
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml up -d mysql'
+            sleep 2
+            sh 'sudo rm -f /tmp/oai-cn5g-load-test.*'
+            if (doTsharkCapturePDURelease) {
+              sh 'nohup sudo tshark -i demo-oai -f "sctp or port 80 or port 8080 or port 8805 or icmp or port 3306" -w /tmp/oai-cn5g-load-test.pcap > /tmp/oai-cn5g-load-test.log 2>&1 &'
+              sh '../ci-scripts/checkTsharkCapture.py --log_file /tmp/oai-cn5g-load-test.log --timeout 30'
+              sh 'sudo chmod 666 /tmp/oai-cn5g-load-test.*'
+            }
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml up -d'
+            sh '../ci-scripts/checkContainerStatus.py --container_name mysql --timeout 40'
+            sh '../ci-scripts/checkContainerStatus.py --container_name oai-upf --timeout 40'
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml ps -a'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives/deregistration', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    // PDU Session Establishment Test should not fail
+    stage ('Deregistration Test') {
+      steps {
+        script {
+          dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+            sh 'sed -i -e "s@TEST_REGISTER@False@" -e "s@NB_REGISTRATIONS@10@" omec-gnbsim-config-*.yaml'
+            sh 'sed -i -e "s@TEST_PDU_SESSION@True@" -e "s@NB_PDU_SESSIONS@125@" -e "s@pdusessest@deregister@" omec-gnbsim-config-*.yaml'
+            sh 'docker-compose -f docker-compose-omec-gnbsim.yaml up -d'
+            // One UE takes 3.7 seconds to finish (3 seconds for the traffic test)
+            // 125 UE x 3.7 = 460 seconds (ie 8 minutes)
+            sh '../../checkOmecGnbsimStatus.py --timeout 500'
+          }
+          retrieveGnbsimLogs('archives/deregistration', 'ci-scripts/docker-compose/load-test-gnbsim')
+          dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+            sh 'docker-compose -f docker-compose-omec-gnbsim.yaml down -t 0'
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            retrieveGnbsimLogs('archives/deregistration', 'ci-scripts/docker-compose/load-test-gnbsim')
+            dir ('ci-scripts/docker-compose/load-test-gnbsim') {
+              sh 'docker-compose -f docker-compose-omec-gnbsim.yaml down -t 0'
+            }
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+            }
+            sleep 5
+            retrieveLogs('archives/deregistration', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+            dir ('docker-compose') {
+              sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+            }
+            cleanUpDockerCompose()
+          }
+        }
+      }
+    }
+    stage ('Undeploy OAI-CN5G - Deregistration Test') {
+      steps {
+        script {
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml stop -t 3'
+          }
+          sleep 5
+          retrieveLogs('archives/deregistration', 'docker-compose/docker-compose-basic-nrf.yaml', 'docker-compose/conf/basic_nrf_config.yaml')
+          dir ('docker-compose') {
+            sh 'docker-compose -f docker-compose-basic-nrf.yaml down -t 3'
+          }
+          cleanUpDockerCompose()
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        // Zipping all archived log files
+        sh "zip -r -qq cn5g_fed_load_test.zip archives"
+        if (fileExists('cn5g_fed_load_test.zip')) {
+          archiveArtifacts artifacts: 'cn5g_fed_load_test.zip'
+        }
+        sh './ci-scripts/checkLoadTestHtmlReport.py --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL
+        if (fileExists('test_results_oai_cn5g_load_test.html')) {
+          archiveArtifacts artifacts: 'test_results_oai_cn5g_load_test.html'
+        }
+      }
+    }
+    cleanup {
+      script {
+        sh 'docker volume prune --force'
+        // Removing the images that we pulled.
+        for (ii = 0; ii < imageNames.size(); ii++) {
+          if (pulledImages[ii]) {
+            sh 'docker rmi ' + imageNames[ii] + ':' + imageTags[ii]
+          }
+        }
+      }
+    }
+  }
+}
+
+def pullImageFromSelfix(idx, imageName, imageTag, branchName) {
+  if ((imageTag == 'develop') && (branchName == 'develop')) {
+    try {
+      tag = sh returnStdout: true, script: './ci-scripts/retrieveLatestTagOnPrivateRepo.py --repo-name ' + imageName
+      tag = tag.trim()
+    } catch (Exception e) {
+      return imageTag
+    }
+  } else {
+    tag = imageTag
+  }
+  // We may have wrong image tag?
+  try {
+    sh 'docker pull selfix.sboai.cs.eurecom.fr/' + imageName + ':' + tag
+    sh 'docker image tag selfix.sboai.cs.eurecom.fr/' + imageName + ':' + tag + ' ' + imageName + ':' + tag
+    sh 'docker rmi selfix.sboai.cs.eurecom.fr/' + imageName + ':' + tag
+    if (idx != -1) {
+      pulledImages[idx] = true
+    }
+  } catch (Exception e) {
+    echo "${imageName} Image tag to test (${imageName}:${tag} does not exist on selfix private registry!"
+    tag = imageTag
+  }
+  return tag
+}
+
+def checkImageInfo(imageName, origTag) {
+  status = 0
+  sh "echo 'Tested Tag is ${imageName}:${origTag}' > archives/${imageName}-image-info.log"
+  try {
+    sh "docker image inspect --format='Size = {{.Size}} bytes' ${imageName}:${origTag} >> archives/${imageName}-image-info.log"
+    sh "docker image inspect --format='Date = {{.Created}}' ${imageName}:${origTag} >> archives/${imageName}-image-info.log"
+  } catch (Exception e) {
+    echo "${imageName} Image tag to test (${imageName}:${origTag} does not exist!"
+    status = 1
+  }
+  return status
+}
+
+def updateDockerCompose(filename, lRanTag) {
+  for (ii = 0; ii < imageNames.size(); ii++) {
+    sh 'sed -i -e "s@oaisoftwarealliance/' + imageNames[ii] + ':v2.0.0@' + imageNames[ii] + ':' + imageTags[ii] + '@" ' + filename
+  }
+  sh 'sed -i -e "s@oaisoftwarealliance/trf-gen-cn5g:latest@trf-gen-cn5g:latest@" ' + filename
+  sh 'sed -i -e "s@5gc-gnbsim:tag-to-use@5gc-gnbsim:' + lRanTag + '@" ci-scripts/docker-compose/load-test-gnbsim/docker-compose-omec-gnbsim.yaml'
+}
+
+def cleanUpDockerCompose() {
+  sh 'git checkout .'
+  sh 'docker network prune --force'
+  sh 'docker volume prune --force'
+}
+
+def retrieveGnbsimLogs(logPath, dcPath) {
+  sh "mkdir -p ${logPath}"
+  sh "cp ${dcPath}/*.yaml ${logPath}"
+  sh "mv ${dcPath}/*.png ${logPath}"
+  for (ii = 0; ii < 8; ii++) {
+    sh "docker logs omec-gnbsim-${ii} > ${logPath}/omec-gnbsim-${ii}.log 2>&1"
+  }
+}
+
+def retrieveLogs(logPath, dcFileName, ymlFileName) {
+  sh "mkdir -p ${logPath}"
+  sh "cp ${dcFileName} ${logPath}"
+  sh "cp ${ymlFileName} ${logPath}"
+  sh "cp docker-compose/database/oai_db2.sql ${logPath}"
+  sh "cp /tmp/oai-cn5g-load-test.* ${logPath} || true"
+  sh "docker logs oai-nrf > ${logPath}/oai-nrf.log 2>&1"
+  sh "docker logs oai-udr > ${logPath}/oai-udr.log 2>&1"
+  sh "docker logs oai-udm > ${logPath}/oai-udm.log 2>&1"
+  sh "docker logs oai-ausf > ${logPath}/oai-ausf.log 2>&1"
+  sh "docker logs oai-amf > ${logPath}/oai-amf.log 2>&1"
+  sh "docker logs oai-smf > ${logPath}/oai-smf.log 2>&1"
+  sh "docker logs oai-upf > ${logPath}/oai-upf.log 2>&1"
+}

@@ -1,0 +1,140 @@
+#/*
+# * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# * contributor license agreements.  See the NOTICE file distributed with
+# * this work for additional information regarding copyright ownership.
+# * The OpenAirInterface Software Alliance licenses this file to You under
+# * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# * except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *      http://www.openairinterface.org/?page_id=698
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *-------------------------------------------------------------------------------
+# * For more information about the OpenAirInterface (OAI) Software Alliance:
+# *      contact@openairinterface.org
+# */
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface SMF service
+#   Valid for Rocky Linux 8.7+
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+FROM docker.io/rockylinux:8 AS oai-smf-builder
+
+ENV IS_DOCKERFILE=1
+
+RUN dnf install 'dnf-command(config-manager)' -y && \
+    dnf config-manager --set-enabled powertools && \
+    dnf install epel-release -y && crb enable && \
+    dnf update -y && \
+    # here just to display the current version
+    cat /etc/os-release && \
+    dnf install -y \
+        psmisc \
+        git \
+        diffutils \
+        file \
+        gcc-c++ \
+        ninja-build \
+        boost-devel \
+        openssl-devel \
+        openssl \
+        wget \
+        libasan && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf
+
+# Some GIT configuration command quite useful
+RUN git config --global https.postBuffer 123289600 && \
+    git config --global http.sslverify false
+
+# Copying source code
+WORKDIR /openair-smf
+COPY ./build/scripts /openair-smf/build/scripts
+COPY ./build/common-build /openair-smf/build/common-build
+COPY ./build/smf/CMakeLists.txt /openair-smf/build/smf/CMakeLists.txt
+
+# Installing all the needed libraries/packages to build and run SMF
+WORKDIR /openair-smf/build/scripts
+RUN ./build_smf --install-deps --force
+
+# Building SMF
+WORKDIR /openair-smf/build/scripts
+COPY . /openair-smf
+RUN ldconfig && \
+    ./build_smf --clean --Verbose --build-type Release --jobs && \
+    ldd /openair-smf/build/smf/build/smf && \
+    mv /openair-smf/build/smf/build/smf /openair-smf/build/smf/build/oai_smf
+
+FROM mikefarah/yq:latest as yq-source
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM docker.io/rockylinux:8-minimal as oai-smf
+ENV TZ=Europe/Paris
+
+RUN microdnf update -y && \
+    microdnf install -y \
+# Debug Tools that are not mandatory
+      tzdata \
+      procps-ng \
+      psmisc \
+      net-tools \
+      iputils \
+      tcpdump \
+# Mandatory packages for the NF to run
+#      libasan \
+      libicu \
+      boost \
+      libevent \
+      findutils \
+      libconfig && \
+    microdnf clean all -y && \
+    rm -rf /var/cache/yum /var/cache/dnf 
+
+# Copying executable and generated libraries
+WORKDIR /openair-smf/bin
+COPY --from=oai-smf-builder \
+    /openair-smf/build/smf/build/oai_smf \
+    /openair-smf/scripts/healthcheck.sh \
+    ./
+COPY --from=yq-source /usr/bin/yq /usr/bin
+
+COPY --from=oai-smf-builder \
+    /usr/local/lib64/libpistache.so.0 \
+    /usr/local/lib/libnghttp2_asio.so \
+    /usr/local/lib/libnghttp2_asio.so.1 \
+    /usr/local/lib64/libspdlog.so \
+    /usr/local/lib64/libfmt.so \
+    /openair-smf/build/smf/build/nas/libNAS.so \
+    /usr/lib64/
+
+RUN ldconfig -v && \
+    ldd /openair-smf/bin/oai_smf
+
+# Copying template configuration files
+# The configuration folder will be flat
+WORKDIR /openair-smf/etc
+COPY --from=oai-smf-builder /openair-smf/etc/smf.conf .
+
+WORKDIR /openair-smf
+
+# expose ports
+EXPOSE 80/tcp 9090/tcp 8805/udp
+# healthcheck
+HEALTHCHECK --interval=10s \
+            --timeout=15s \
+            --retries=6 \
+    CMD /openair-smf/bin/healthcheck.sh
+
+CMD ["/openair-smf/bin/oai_smf", "-c", "/openair-smf/etc/config.yaml", "-o"]

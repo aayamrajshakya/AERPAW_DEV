@@ -1,0 +1,7 @@
+nohup: ignoring input
+Running as user "root" and group "root". This could be dangerous.
+Capturing on 'cn5g-access', 'cn5g-core-pri', and 'cn5g-core-sec'
+ ** (tshark:402839) 15:13:13.394494 [Main MESSAGE] -- Capture started.
+ ** (tshark:402839) 15:13:13.394636 [Main MESSAGE] -- File: "/tmp/oai/steering-scenario/user_plane_steering.pcap"
+tshark: 
+1112 packets captured

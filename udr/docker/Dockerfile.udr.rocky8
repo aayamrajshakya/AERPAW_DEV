@@ -1,0 +1,145 @@
+#/*
+# * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# * contributor license agreements.  See the NOTICE file distributed with
+# * this work for additional information regarding copyright ownership.
+# * The OpenAirInterface Software Alliance licenses this file to You under
+# * the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# * except in compliance with the License.
+# * You may obtain a copy of the License at
+# *
+# *      http://www.openairinterface.org/?page_id=698
+# *
+# * Unless required by applicable law or agreed to in writing, software
+# * distributed under the License is distributed on an "AS IS" BASIS,
+# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# * See the License for the specific language governing permissions and
+# * limitations under the License.
+# *-------------------------------------------------------------------------------
+# * For more information about the OpenAirInterface (OAI) Software Alliance:
+# *      contact@openairinterface.org
+# */
+#---------------------------------------------------------------------
+#
+# Dockerfile for the Open-Air-Interface UDR service
+#   Valid for Rocky Linux 8.7+
+#
+#---------------------------------------------------------------------
+
+#---------------------------------------------------------------------
+# BUILDER IMAGE
+#---------------------------------------------------------------------
+
+FROM docker.io/rockylinux:8 AS oai-udr-builder
+
+ENV IS_DOCKERFILE=1
+
+RUN dnf install 'dnf-command(config-manager)' -y && \
+    dnf config-manager --set-enabled powertools && \
+    dnf install epel-release -y && crb enable && \
+    dnf update -y && \
+    # here just to display the current version
+    cat /etc/os-release && \
+    dnf install -y \
+        psmisc \
+        git \
+        diffutils \
+        libasan \
+        wget \
+        file && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf
+
+# Some GIT configuration command quite useful
+RUN git config --global https.postBuffer 123289600 && \
+    git config --global http.sslverify false
+
+# Copying source code
+WORKDIR /openair-udr
+COPY . /openair-udr
+
+# wait for it
+WORKDIR /
+RUN git clone https://github.com/vishnubob/wait-for-it.git
+
+# Installing and Building UDR
+WORKDIR /openair-udr/build/scripts
+RUN ./build_udr --install-deps --force
+# Patching the CMakefile to link mysqlclient
+RUN sed -i -e "s@-lmysqlclient@-L/usr/lib64/mysql -lmysqlclient@" ../../src/oai_udr/CMakeLists.txt && \
+    ./build_udr --clean --Verbose --build-type Release --jobs && \
+    ldd /openair-udr/build/udr/build/udr && \
+    mv /openair-udr/build/udr/build/udr /openair-udr/build/udr/build/oai_udr
+
+FROM mikefarah/yq:latest as yq-source
+
+#---------------------------------------------------------------------
+# TARGET IMAGE
+#---------------------------------------------------------------------
+FROM docker.io/rockylinux:8-minimal as oai-udr
+ENV TZ=Europe/Paris
+
+# We install some debug tools for the moment in addition of mandatory libraries
+RUN microdnf update -y && \
+    microdnf install -y \
+# Debug Tools that are not mandatory
+      tzdata \
+      procps-ng \
+      psmisc \
+      net-tools \
+      iputils \
+      tcpdump \
+# Mandatory packages for the NF to run
+#      libasan \
+      libicu \
+      boost \
+      libevent \
+      mysql-libs \
+      findutils \
+      libconfig && \
+    microdnf clean all -y && \
+    rm -rf /var/cache/yum /var/cache/dnf
+
+# Copying executable and generated libraries
+WORKDIR /openair-udr/bin
+COPY --from=oai-udr-builder \
+    /openair-udr/build/udr/build/oai_udr \
+    /openair-udr/scripts/healthcheck.sh \
+    /wait-for-it/wait-for-it.sh \
+    ./
+COPY --from=yq-source /usr/bin/yq /usr/bin
+
+COPY --from=oai-udr-builder \
+# Copying only the packages built from source
+    /usr/local/lib64/libpistache.so.0 \
+    /usr/local/lib/libnghttp2_asio.so \
+    /usr/local/lib/libnghttp2_asio.so.1 \
+    /usr/local/lib64/libspdlog.so \
+    /usr/local/lib64/libfmt.so \
+    /usr/local/lib64/libyaml-cpp.so.0.* \
+    /usr/local/lib64/libmongocxx.so._noabi \
+    /usr/local/lib64/libbsoncxx.so._noabi \
+    /lib64/libmongoc-1.0.so.0 \
+    /lib64/libbson-1.0.so.0 \
+    /lib64/libsnappy.so.1 \
+    /lib64/libmongocrypt.so.0 \
+    /usr/lib64/
+
+RUN ldconfig && \
+    ldd /openair-udr/bin/oai_udr
+
+WORKDIR /openair-udr/etc
+COPY --from=oai-udr-builder \
+    /openair-udr/etc/udr.conf \
+    /openair-udr/etc/config.yaml ./
+
+WORKDIR /openair-udr
+
+# expose ports
+EXPOSE 80/tcp
+# healthcheck
+HEALTHCHECK --interval=10s \
+            --timeout=15s \
+            --retries=6 \
+    CMD /openair-udr/bin/healthcheck.sh
+
+CMD ["/openair-udr/bin/oai_udr", "-c", "/openair-udr/etc/config.yaml", "-o"]

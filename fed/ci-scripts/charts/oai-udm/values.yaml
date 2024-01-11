@@ -1,0 +1,86 @@
+kubernetesType: Openshift  #Vanilla for community kubernetes distribution
+
+nfimage:
+  repository: image-registry.openshift-image-registry.svc:5000/oaicicd-core/oai-udm #docker.io/oaisoftwarealliance/oai-udm         
+  version: UDM_TAG                        #image tag, develop tag for experimental features 
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+tcpdumpimage:
+  repository: support-tools
+  version: 8.7-8
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+initContainer:
+  repository: docker.io/alpine/curl
+  version: 3.14
+  #pullPolicy: IfNotPresent or Never or Always
+  pullPolicy: IfNotPresent
+
+## good to use when pulling images from docker-hub mention 
+#imagePullSecrets: 
+#  - name: "regcred"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: "oai-udm-sa"
+
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+#service type is fixed to clusterIP, it is only support for non multus interface (eth0)
+
+securityContext:
+  capabilities:
+    add:
+     - NET_ADMIN
+    drop:
+     - ALL
+  privileged: true
+
+start:
+  udm: true
+  tcpdump: true
+
+config:
+  tz: "Europe/Paris"
+  nrfFqdn: "oai-nrf"
+  sbiPortHttp1: 80
+  sbiPortHttp2: 8080
+
+persistent:
+  sharedvolume: true
+  volumeName: nfs-client
+  size: 1Gi
+
+resources:
+  define: false
+  limits:
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
+    nf:
+      cpu: 100m
+      memory: 128Mi
+  requests:
+    tcpdump:
+      cpu: 100m
+      memory: 128Mi
+    nf:
+      cpu: 100m
+      memory: 128Mi
+
+readinessProbe: true
+
+livenessProbe: false
+
+terminationGracePeriodSeconds: 5
+
+nodeSelector: {}
+
+nodeName: demophon

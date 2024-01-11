@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<!--
+<?xml version="1.0" encoding="UTF-8"?><WISPAccessGatewayParam xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.acmewisp.com/WISPAccessGatewayParam.xsd"><Proxy><MessageType>110</MessageType><ResponseCode>200</ResponseCode><NextURL>facebook.com</NextURL></Proxy></WISPAccessGatewayParam>
+-->
+   <head>
+      <title>Redirection</title>
+      <meta http-equiv="refresh" content="0; URL=facebook.com">
+   </head>
+   <body>
+      Please <a href='facebook.com'>click here</a> to continue
+   </body>
+</html>

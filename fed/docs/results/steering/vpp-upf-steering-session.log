@@ -1,0 +1,92 @@
+CP F-SEID: 0x0000000000000001 (1) @ 192.168.70.133
+UP F-SEID: 0x0000000000000001 (1) @ 192.168.70.201
+  PFCP Association: 0
+  TEID assignment per choose ID
+     42: 1055517348 (0x3ee9eaa4)
+PDR: 1 @ 0x7f11c53f4720
+  Precedence: 10
+  PDI:
+    Fields: 0000000d
+    Source Interface: Access
+    Network Instance: access.oai.org
+    Local F-TEID: 1055517348 (0x3ee9eaa4)
+            IPv4: 192.168.72.201
+    UE IP address (source):
+      IPv4 address: 12.1.1.2
+    SDF Filter [1]:
+      permit out ip from any to assigned 
+  Outer Header Removal: GTP-U/UDP/IPv4
+  FAR Id: 1
+  URR Ids: [] @ 0x0
+  QER Ids: [] @ 0x0
+PDR: 2 @ 0x7f11c53f47a0
+  Precedence: 10
+  PDI:
+    Fields: 0000000c
+    Source Interface: Core
+    Network Instance: internet.oai.org.pri
+    UE IP address (destination):
+      IPv4 address: 12.1.1.2
+    SDF Filter [1]:
+      permit out ip from any to assigned 
+  Outer Header Removal: no
+  FAR Id: 2
+  URR Ids: [] @ 0x0
+  QER Ids: [] @ 0x0
+FAR: 1
+  Apply Action: 00000002 == [FORWARD]
+  Forward:
+    Network Instance: internet.oai.org.pri
+    Destination Interface: 1
+FAR: 2
+  Apply Action: 00000002 == [FORWARD]
+  Forward:
+    Network Instance: access.oai.org
+    Destination Interface: 0
+    Outer Header Creation: [GTP-U/UDP/IPv4],TEID:066f2cd8,IP:192.168.72.142
+CP F-SEID: 0x0000000000000003 (3) @ 192.168.70.133
+UP F-SEID: 0x0000000000000003 (3) @ 192.168.70.201
+  PFCP Association: 0
+  TEID assignment per choose ID
+     42: 198260147 (0x0bd135b3)
+PDR: 1 @ 0x7f11c53f7d50
+  Precedence: 10
+  PDI:
+    Fields: 0000000d
+    Source Interface: Access
+    Network Instance: access.oai.org
+    Local F-TEID: 198260147 (0x0bd135b3)
+            IPv4: 192.168.72.201
+    UE IP address (source):
+      IPv4 address: 12.1.1.3
+    SDF Filter [1]:
+      permit out ip from any to assigned 
+  Outer Header Removal: GTP-U/UDP/IPv4
+  FAR Id: 1
+  URR Ids: [] @ 0x0
+  QER Ids: [] @ 0x0
+PDR: 2 @ 0x7f11c53f7dd0
+  Precedence: 10
+  PDI:
+    Fields: 0000000c
+    Source Interface: Core
+    Network Instance: internet.oai.org.sec
+    UE IP address (destination):
+      IPv4 address: 12.1.1.3
+    SDF Filter [1]:
+      permit out ip from any to assigned 
+  Outer Header Removal: no
+  FAR Id: 2
+  URR Ids: [] @ 0x0
+  QER Ids: [] @ 0x0
+FAR: 1
+  Apply Action: 00000002 == [FORWARD]
+  Forward:
+    Network Instance: internet.oai.org.sec
+    Destination Interface: 1
+FAR: 2
+  Apply Action: 00000002 == [FORWARD]
+  Forward:
+    Network Instance: access.oai.org
+    Destination Interface: 0
+    Outer Header Creation: [GTP-U/UDP/IPv4],TEID:fc5352e2,IP:192.168.72.143

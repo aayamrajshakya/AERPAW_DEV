@@ -1,0 +1,44 @@
+def node1 = "selfix"
+def resource1 = "CI-Selfix-CN5G-Ubuntu22"
+def node2 = "alambix"
+def resource2 = "CI-Alambix-Usage"
+
+pipeline {
+  agent {
+    label node1
+  }
+  options {
+    timestamps()
+    ansiColor('xterm')
+    lock (resource1)
+  }
+  stages {
+    stage ("Selfix Buildx Cache CleanUp") {
+      steps {
+        script {
+          sh 'df -h /data'
+          timeout (time: 15, unit: 'MINUTES') {
+            sh 'docker buildx prune --verbose -f'
+          }
+          sh 'df -h /data'
+          sh '/data/private-local-registry/cleanup-registry.py -mr'
+          sh 'df -h /data'
+        } 
+      }
+    }
+    stage ("Alambix Buildx Cache CleanUp") {
+      agent { label node2 }
+      steps {
+        lock (resource2) {
+        script {
+          sh 'df -h /'
+          timeout (time: 15, unit: 'MINUTES') {
+            sh 'docker buildx prune --verbose -f'
+          }
+          sh 'df -h /'
+        } 
+        } 
+      }
+    }
+  }
+}
