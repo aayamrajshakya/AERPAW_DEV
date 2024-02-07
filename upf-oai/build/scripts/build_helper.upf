@@ -1,0 +1,405 @@
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The OpenAirInterface Software Alliance licenses this file to You under
+# the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.openairinterface.org/?page_id=698
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+# For more information about the OpenAirInterface (OAI) Software Alliance:
+#      contact@openairinterface.org
+################################################################################
+
+# file build_helper.spgw
+# brief
+# author Laurent Thomas, Lionel GAUTHIER
+#
+#######################################
+################################
+# include helper functions
+################################
+SCRIPT=$(readlink -f ${BASH_SOURCE})
+THIS_SCRIPT_PATH=`dirname $SCRIPT`
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.fb_folly
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.fmt
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.spdlog
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.yamlcpp
+source $THIS_SCRIPT_PATH/../common-build/installation/build_helper.nlohmann
+
+# Get the kernel version
+KERNEL_VERSION=$(uname -r | cut -d'-' -f1,2 | cut -d'.' -f1,2)
+# The validated kernel versions for bpf-tool are between 5.7 and 5.15
+MAJOR_VERSION=`echo $KERNEL_VERSION | cut -d'.' -f1,1`
+MINOR_VERSION=`echo $KERNEL_VERSION | cut -d'.' -f2,2`
+if [[ $MAJOR_VERSION -lt 5 ]]; then
+  KERNEL_VERSION=5.7
+elif [[ $MAJOR_VERSION -gt 5 ]]; then
+  KERNEL_VERSION=5.15
+elif [[ $MAJOR_VERSION -eq 5 ]]; then
+  if [[ $MINOR_VERSION -lt 7 ]]; then
+    KERNEL_VERSION=5.7
+  elif [[ $MINOR_VERSION -gt 15 ]]; then
+    KERNEL_VERSION=5.15
+  fi
+fi
+
+#-------------------------------------------------------------------------------
+install_libbpf_from_git() {
+  echo "Starting to install libbpf from source"
+  if [ $1 -eq 0 ]; then
+    read -p "Do you want to install libbpf ? <y/N> " prompt
+    OPTION=""
+  else
+    prompt='y'
+    OPTION="-y"
+  fi
+  if [ $2 -eq 0 ]; then
+    debug=0
+  else
+    debug=1
+  fi
+
+  if [[ $prompt =~ [yY](es)* ]]
+  then
+    GIT_URL=https://github.com/libbpf/libbpf.git
+    echo "Install libbpf from $GIT_URL"
+    pushd $OPENAIRCN_DIR/build/ext
+    echo "Downloading libbpf"
+    if [[ $OPTION =~ -[yY](es)* ]]
+    then
+      $SUDO rm -rf libbpf
+    fi
+
+    git clone $GIT_URL
+    if [[ $OS_DISTRO == "ubuntu" ]]; then
+      PACKAGE_LIST="\
+        make \
+        clang \
+        $CMAKE \
+        binutils-dev \
+        libbpf-dev \
+        libelf-dev \
+        libcap-dev \
+        libpcap-dev \
+        zlib1g-dev \
+        llvm \
+        python3-docutils"
+    elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+      PACKAGE_LIST="\
+        make \
+        clang \
+        $CMAKE \
+        binutils-devel \
+        libpfm-devel \
+        elfutils-devel \
+        libpcap \
+        zlib-devel \
+        llvm \
+        python3"
+    fi
+    $SUDO $INSTALLER install -y $PACKAGE_LIST
+    cd libbpf && git checkout 051a4009f94d5633a8f734ca4235f0a78ee90469
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    cd src && make -j $(nproc) 
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    $SUDO make install
+    popd
+  fi
+  echo "libbpf installation complete"
+  return 0
+}
+
+#-------------------------------------------------------------------------------
+install_bpftool_from_git() {
+  echo "Starting to install bpftool from source"
+  if [ $1 -eq 0 ]; then
+    read -p "Do you want to install bpftool ? <y/N> " prompt
+    OPTION=""
+  else
+    prompt='y'
+    OPTION="-y"
+  fi
+  if [ $2 -eq 0 ]; then
+    debug=0
+  else
+    debug=1
+  fi
+
+  if [[ $prompt =~ [yY](es)* ]]
+  then
+    #GIT_URL=https://github.com/libbpf/bpftool.git
+    GIT_URL=https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/snapshot/linux-$KERNEL_VERSION.tar.gz
+    echo "Install bpftool from $GIT_URL"
+    pushd $OPENAIRCN_DIR/build/ext
+    echo "Downloading bpftool"
+    if [[ $OPTION =~ -[yY](es)* ]]
+    then
+      $SUDO rm -rf bpftool
+    fi
+
+    if [[ $OS_DISTRO == "ubuntu" ]]; then
+      $SUDO $INSTALLER install -y wget gcc-multilib
+    elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+      $SUDO $INSTALLER install -y wget
+    fi
+    # trick for CI
+    if [ ! -f $OPENAIRCN_DIR/build/ext/linux-$KERNEL_VERSION.tar.gz ]; then
+      wget -nv --tries=4 --retry-connrefused --wait=8 $GIT_URL
+      ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    fi
+    ls -lst linux-$KERNEL_VERSION.tar.gz && tar -xf linux-$KERNEL_VERSION.tar.gz && rm -rf linux-$KERNEL_VERSION.tar.gz
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    cd linux-$KERNEL_VERSION/tools/bpf/bpftool && make -j $(nproc)
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    $SUDO make install
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    $SUDO rm -rf linux-$KERNEL_VERSION
+    popd
+  fi
+  echo "bpftool installation complete"
+  return 0
+}
+
+#-------------------------------------------------------------------------------
+#arg1 is force (0 or 1) (no interactive script)
+#arg2 is debug (0 or 1) (install debug libraries)
+check_install_upf_deps() {
+
+  if [ $1 -gt 0 ]; then
+    OPTION="-y"
+  else
+    OPTION=""
+  fi
+  if [ $2 -eq 0 ]; then
+    debug=0
+  else
+    debug=1
+  fi
+
+  echo "Check supported distribution"
+  check_supported_distribution
+  [[ $? -ne 0 ]] && return $?
+
+  # prevent lock on /var/lib/dpkg/lock
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    #$SUDO systemctl mask apt-daily.service
+    #$SUDO systemctl mask apt-daily.timer
+    #$SUDO systemctl mask apt-daily-upgrade.service
+    #$SUDO systemctl mask apt-daily-upgrade.timer
+    if [ $IS_CONTAINER -eq 0 ]; then
+      $SUDO sed -i 's/1/0/g' /etc/apt/apt.conf.d/10periodic
+    fi
+  fi
+
+  update_package_db
+
+  check_enable_epel_repos
+
+  # Compilers, generators, ...
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    PACKAGE_LIST="\
+      autoconf \
+      automake \
+      build-essential \
+      $CMAKE \
+      git"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      autoconf \
+      automake \
+      gcc-c++ \
+      gcc-toolset-12 \
+      $CMAKE \
+      make \
+      git"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install build tools"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  # Libraries
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    case "$(get_distribution_release)" in
+      "ubuntu20.04")
+        specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan5"
+        ;;
+      *)
+        specific_packages="libconfig++-dev libasio-dev libboost-all-dev libasan?"
+        ;;
+    esac
+    # removed libspdlog-dev
+    PACKAGE_LIST="\
+      $specific_packages \
+      libcurl4 \
+      libcurl4-gnutls-dev \
+      libevent-dev \
+      libgmp-dev \
+      libhogweed? \
+      libidn2-0-dev \
+      libidn11-dev \
+      libssl-dev \
+      libtool \
+      openssl \
+      nettle-dev \
+      net-tools \
+      pkg-config \
+      ninja-build"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      boost-devel \
+      libconfig-devel \
+      libgcrypt-devel \
+      gmp-devel \
+      libidn-devel \
+      openssl-devel \
+      libtool \
+      openssl \
+      check \
+      nettle-devel \
+      libcurl-devel \
+      glibc-devel \
+      glibc-devel.i686 \
+      python2 \
+      pkgconfig \
+      ninja-build \
+      libasan"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install distro libs"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  echo_info "distro libs installation complete"
+
+  install_libbpf_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_bpftool_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_fb_folly_from_source $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_fmt_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+  install_spdlog_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  install_nlohmann_from_git $1 $2
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  # latest usage of yaml-cpp suggests that we should be using 0.7+ version
+  # To be sure, let's install from source all the time for the moment
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    case "$(get_distribution_release)" in
+      "ubuntu20.04")
+        # definitely, 0.6.2 as PPA installed is not enough
+        install_libyaml_cpp_from_git $1 $2
+        ret=$?;[[ $ret -ne 0 ]] && return $ret
+        ;;
+      "ubuntu22.04")
+        # not sure about 0.7.0
+        #$SUDO $INSTALLER install $OPTION libyaml-cpp0.7 libyaml-cpp-dev
+        install_libyaml_cpp_from_git $1 $2
+        ret=$?;[[ $ret -ne 0 ]] && return $ret
+        ;;
+    esac
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    # definitely, 0.6.2 as PPA installed is not enough
+    # $SUDO $INSTALLER install $OPTION yaml-cpp yaml-cpp-devel
+    install_libyaml_cpp_from_git $1 $2
+    ret=$?;[[ $ret -ne 0 ]] && return $ret
+  fi
+
+  if [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    rm -f /usr/bin/g++ /usr/bin/gcc
+    update-alternatives --install /usr/bin/gcc gcc /opt/rh/gcc-toolset-12/root/bin/gcc 20
+    update-alternatives --install /usr/bin/g++ g++ /opt/rh/gcc-toolset-12/root/bin/g++ 20
+  fi
+
+  $SUDO ldconfig
+
+  return 0
+}
+#-------------------------------------------------------------------------------
+#arg1 is force (0 or 1) (no interactive script)
+#arg2 is debug (0 or 1) (install debug libraries)
+check_install_upf_min_deps() {
+
+  if [ $1 -gt 0 ]; then
+    OPTION="-y"
+  else
+    OPTION=""
+  fi
+
+  echo "Check supported distribution"
+  check_supported_distribution
+  [[ $? -ne 0 ]] && return $?
+
+  # prevent lock on /var/lib/dpkg/lock
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    #$SUDO systemctl mask apt-daily.service
+    #$SUDO systemctl mask apt-daily.timer
+    #$SUDO systemctl mask apt-daily-upgrade.service
+    #$SUDO systemctl mask apt-daily-upgrade.timer
+    $SUDO sed -i 's/1/0/g' /etc/apt/apt.conf.d/10periodic
+  fi
+
+  update_package_db
+
+  check_enable_epel_repos
+
+  # Compilers, generators, ...
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    PACKAGE_LIST="\
+      gdb "
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      gdb "
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install build tools"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+
+  # Networking
+  if [[ $OS_DISTRO == "ubuntu" ]]; then
+    case "$(get_distribution_release)" in
+  "ubuntu18.04")
+      specific_packages="iproute2"
+      ;;
+    esac
+    PACKAGE_LIST="\
+      $specific_packages \
+      ethtool \
+      iptables \
+      vlan"
+  elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+    PACKAGE_LIST="\
+      ethtool \
+      iproute \
+      vconfig"
+  else
+    echo_fatal "$OS_DISTRO is not a supported distribution."
+  fi
+  echo "Install networking tools"
+  $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+  ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+  return 0
+}
