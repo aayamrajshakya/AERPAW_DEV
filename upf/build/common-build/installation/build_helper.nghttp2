@@ -1,0 +1,113 @@
+################################################################################
+# Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The OpenAirInterface Software Alliance licenses this file to You under
+# the OAI Public License, Version 1.1  (the "License"); you may not use this file
+# except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.openairinterface.org/?page_id=698
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#-------------------------------------------------------------------------------
+# For more information about the OpenAirInterface (OAI) Software Alliance:
+#      contact@openairinterface.org
+################################################################################
+
+#-------------------------------------------------------------------------------
+#arg1 is force (0 or 1) (no interactive script)
+#arg2 is debug (0 or 1) (install debug libraries)
+install_nghttp2_from_git() {
+  echo "Starting to install nghttp2"
+  if [ $1 -eq 0 ]; then
+    read -p "Do you want to install nghttp2 ? <y/N> " prompt
+    OPTION=""
+  else
+    prompt='y'
+    OPTION="-y"
+  fi
+  if [ $2 -eq 0 ]; then
+    debug=0
+  else
+    debug=1
+  fi
+
+
+  if [[ $prompt =~ [yY](es)* ]]
+  then
+    if [[ $OS_DISTRO == "ubuntu" ]]; then
+      PACKAGE_LIST="\
+      g++ \
+      $CMAKE \
+      binutils \
+      autoconf \
+      automake \
+      autotools-dev \
+      libtool \
+      pkg-config \
+      zlib1g-dev \
+      libcunit1-dev \
+      libssl-dev \
+      libxml2-dev libev-dev libevent-dev libjansson-dev libc-ares-dev \
+      libjemalloc-dev libsystemd-dev python3-dev python-setuptools"
+    elif [[ "$OS_BASEDISTRO" == "fedora" ]]; then
+      PACKAGE_LIST="\
+      gcc-c++ \
+      binutils-devel \
+      autoconf \
+      automake \
+      $CMAKE \
+      make \
+      libtool \
+      pkg-config \
+      zlib-devel \
+      CUnit-devel \
+      openssl-devel \
+      libxml2-devel libev-devel libevent-devel jansson-devel c-ares-devel \
+      jemalloc-devel systemd-devel python3-Cython python3-devel python3-setuptools"
+    else
+      echo_fatal "$OS_DISTRO is not a supported distribution."
+    fi
+    echo "Install build tools"
+    $SUDO $INSTALLER install $OPTION $PACKAGE_LIST
+    ret=$?;[[ $ret -ne 0 ]] && return $ret
+
+    GIT_URL=https://github.com/nghttp2/nghttp2.git
+    echo "Install nghttp2 from $GIT_URL"
+    pushd /tmp
+    echo "Downloading nghttp2"
+    if [[ $OPTION =~ [yY](es)* ]]
+    then
+      $SUDO rm -rf nghttp2
+    fi
+
+    git clone $GIT_URL
+    cd nghttp2
+    git checkout 43ba3125932c1d56addaeded2b7f62637af255cd
+    git submodule update --init
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    autoreconf -i
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    automake
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    autoconf
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    ./configure --enable-asio-lib --enable-lib-only
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    make -j $(nproc)
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    $SUDO make install
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    $SUDO ldconfig
+    ret=$?;[[ $ret -ne 0 ]] && popd && return $ret
+    git clean -x -d -ff .
+    popd
+  fi
+  echo "nghttp2 installation complete"
+  return 0
+}
