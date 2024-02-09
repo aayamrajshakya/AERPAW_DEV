@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Jan 15 - 19</title>
+	<link rel="stylesheet" href="fontawesome/css/all.min.css"> <!-- https://fontawesome.com/ -->
+	<link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro&display=swap" rel="stylesheet"> <!-- https://fonts.google.com/ -->
+    <link rel="apple-touch-icon" sizes="180x180" href="images/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="images/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="images/favicon/favicon-16x16.png"><link rel="manifest" href="images/favicon/site.webmanifest"><link rel="mask-icon" href="images/favicon/safari-pinned-tab.svg" color="#5bbad5"><link rel="shortcut icon" href="images/favicon/favicon.ico"><meta name="msapplication-TileColor" content="#da532c"><meta name="msapplication-config" content="images/favicon/browserconfig.xml"><meta name="theme-color" content="#ffffff">
+
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/templatemo-xtra-blog.css" rel="stylesheet">
+
+
+
+</head>
+<body>
+    <header class="tm-header" id="tm-header">
+        <div class="tm-header-wrapper">
+            <button class="navbar-toggler" type="button" aria-label="Toggle navigation">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="tm-site-header">            
+                <h2 class="text-center">Table of Contents</h2>
+            </div>
+            <nav class="tm-nav" id="tm-nav">            
+                <ul>
+                    <li class="tm-nav-item active"><a href="index.html" class="tm-nav-link">
+                        <i class="fas fa-home"></i>
+                        Home
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Dec11-15.html" class="tm-nav-link">
+                        Dec 11 - 15
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Dec18-22.html" class="tm-nav-link">
+                        Dec 18 - 22
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Dec25-29.html" class="tm-nav-link">
+                        Dec 25 - 29
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Jan1-5.html" class="tm-nav-link">
+                        Jan 1 - 5
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Jan8-12.html" class="tm-nav-link">
+                        Jan 8 - 12
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Jan15-19.html" class="tm-nav-link">
+                        Jan 15 - 19
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Jan22-26.html" class="tm-nav-link">
+                        Jan 22 - 26
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Jan29-Feb2.html" class="tm-nav-link">
+                        Jan 29 - Feb 2
+                    </a></li>
+                    <li class="tm-nav-item"><a href="Feb5-9.html" class="tm-nav-link">
+                        Feb 5 - 9
+                    </a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <main class="tm-main">
+
+                      
+            <div class="row tm-row tm-mb-45">
+                <div class="col-12">
+                          <h2>Week of Jan 15 - 19</h2>
+<hr>
+                    We continued our work on containerizing OAI Core Network into a single container. Meanwhile, we had some issue in containerizing the core network.<br><br>
+                          <center> <img src="images/Jan15-19/1.png" style="width: 100%; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);"></center><center>Fig 1: 'max depth exceeded' error</center>
+
+                          <br>After containerizing the core network, we faced challenges with the Dockerfile's maximum layer limit. While we managed to build the file without issues, we encountered difficulties running the container.<br><br>
+                          <mark>Why does the issue occur: Docker has reached the number of layers that may be stacked in a container image, and it has hit that limit (127).</mark><br><br> On the other side, we ran the containerized OAI on the testbed.<br>
+                          <center> <img src="images/Jan15-19/2.png" style="width: 40%; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);"></center><center>Fig 2: Testbed for the containerized OAI
+</center><br>It appeared to have connected successfully; however, when attempting to fetch the IP address, it did not show up. The <mark><i>ifconfig</i></mark> command failed to display the required <i><mark>oaitun_ue1</mark></i>. However, when using the <i><mark>ifconfig oaitun_ue1</mark></i> command, the TUN device showed up without an assigned IP address. This suggests that the TUN device may not have been activated properly.
+        </main>
+    </div>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/templatemo-script.js"></script>
+</body>
+</html>
