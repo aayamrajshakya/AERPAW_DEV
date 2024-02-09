@@ -6,7 +6,13 @@
 
 ## Config
 
-1.  [AMF config](coreconfigs/amf/config.yaml)
+1.  [AMF config](amf/etc/config.yaml)
+2.  AUSF_config
+3.  NRF_config
+4.  UDM_config
+5.  UDR_config
+6.  SMF_config
+7.  UPF_config
 
 ## Misc
 
