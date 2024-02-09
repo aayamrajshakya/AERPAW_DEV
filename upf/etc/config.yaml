@@ -42,7 +42,7 @@ http_version: 2
 ### Each NF takes its local SBI interfaces and remote interfaces from here, unless it gets them using NRF discovery mechanisms
 nfs:
   amf:
-    host: oai-amf
+    host: amf
     sbi:
       port: 8080
       api_version: v1
@@ -51,7 +51,7 @@ nfs:
       interface_name: eth0
       port: 38412
   smf:
-    host: oai-smf
+    host: smf
     sbi:
       port: 8080
       api_version: v1
@@ -60,7 +60,7 @@ nfs:
       interface_name: eth0
       port: 8805
   upf:
-    host: oai-upf
+    host: upf
     sbi:
       port: 8080
       api_version: v1
@@ -77,25 +77,25 @@ nfs:
       interface_name: demo-oai
       port: 2152
   udm:
-    host: oai-udm
+    host: udm
     sbi:
       port: 8080
       api_version: v1
       interface_name: eth0
   udr:
-    host: oai-udr
+    host: udr
     sbi:
       port: 8080
       api_version: v1
       interface_name: eth0
   ausf:
-    host: oai-ausf
+    host: ausf
     sbi:
       port: 8080
       api_version: v1
       interface_name: eth0
   nrf:
-    host: oai-nrf
+    host: nrf
     sbi:
       port: 8080
       api_version: v1
@@ -104,9 +104,9 @@ nfs:
 #### Common for UDR and AMF
 database:
   host: mysql
-  user: test
+  user: root
   type: mysql
-  password: test
+  password:
   database_name: oai_db
   generate_random: true
   connection_timeout: 300 # seconds
