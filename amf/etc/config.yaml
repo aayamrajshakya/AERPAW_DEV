@@ -1,3 +1,6 @@
+# # AMF config file
+
+
 ################################################################################
 # Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -40,6 +43,9 @@ http_version: 2
 
 ############## SBI Interfaces
 ### Each NF takes its local SBI interfaces and remote interfaces from here, unless it gets them using NRF discovery mechanisms
+
+  # ## all interfaces changed to eth0
+
 nfs:
   amf:
     host: amf
@@ -88,7 +94,7 @@ nfs:
     sbi:
       port: 8080
       api_version: v1
-      interface_name: eth0
+      interface_name: eth0 
   nssf:
     host: nssf
     sbi:
@@ -98,8 +104,9 @@ nfs:
 
 
 #### Common for UDR and AMF
+# ## host user and password change for auth
 database:
-  host: mysql
+  host: localhost
   user: root
   type: mysql
   password:
@@ -108,8 +115,7 @@ database:
 
 ############## NF-specific configuration
 amf:
-  amf_name: "OAI-AMF"
-  # This really depends on if we want to keep the "mini" version or not
+  amf_name: "OAI-AMF" # this is something to watch out for
   support_features_options:
     enable_simple_scenario: no #"no" by default with the normal deployment scenarios with AMF/SMF/UPF/AUSF/UDM/UDR/NRF. 
                                # set it to "yes" to use with the minimalist deployment scenario (including only AMF/SMF and UPF) by using the internal AUSF/UDM implemented inside AMF. 

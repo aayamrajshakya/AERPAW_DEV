@@ -1,3 +1,6 @@
+# # UDM config file
+#
+#
 ################################################################################
 # Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
 # contributor license agreements.  See the NOTICE file distributed with
@@ -97,8 +100,9 @@ nfs:
 
 
 #### Common for UDR and AMF
+# ## change user host and password for auth
 database:
-  host: mysql
+  host: localhost
   user: root
   type: mysql
   password:
