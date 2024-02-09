@@ -1,0 +1,18 @@
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+192.168.70.130  a8762a8eb9c2
+192.168.70.131 mysql
+192.168.70.139 asterisk-ims
+192.168.70.136 udr
+192.168.70.137 udm
+192.168.70.138 ausf
+192.168.70.130 nrf
+192.168.70.132 amf
+192.168.70.133 smf
+192.168.70.134 upf
+192.168.70.135 oai-ext-dn
+

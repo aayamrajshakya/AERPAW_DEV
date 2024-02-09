@@ -1,0 +1,21 @@
+nrf -- succeeded
+amf -- succeeded
+mysql -- succeeded
+udm -- sever in use HTTP
+upf -- reading config failed (IPv6 error)
+ausf -- sever in use HTTP
+smf -- reading config failed
+udr -- DB connection unauthorized
+
+run before starting:
+docker network create \
+  --driver=bridge \
+  --subnet=192.168.70.128/26 \
+  -o "com.docker.network.bridge.name"="demo-oai" \
+  demo-oai-public-net
+
+then run:
+
+sudo docker run -it --privileged --network <network-id> -v /dev/bus/usb:/dev/bus/usb --net none --cap-add=NET_ADMIN --cap-add=SYS_NICE <conatiner-id> /bin/bash
+
+

@@ -3,6 +3,7 @@
 ## Journal
 
 1.  [Jan 5 -9](journal/Jan29-Feb2.md)
+2.  Dec11-15
 
 ## Config
 
