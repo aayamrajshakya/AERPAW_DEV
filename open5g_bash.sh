@@ -25,16 +25,10 @@ current_user=$(whoami)
 
 # Use tilde directly in cd
 
+cd ~
+git clone https://github.com/aayamrajshakya/AERPAW_DEV.git 
 
-if [ -d "~/containerization" ]; then
-    echo "Folder exists. Skipping."
-else
-    echo "Folder does not exist. Cloning repository."
-    cd ~
-    git clone https://github.com/aayamrajshakya/containerization.git 
-
-fi
-folder_path=~/containerization
+folder_path=~/AERPAW_DEV
 
 cd "$folder_path"
 
@@ -494,7 +488,7 @@ rm -rf /var/lib/apt/lists/*
 git config --global https.postBuffer 123289600
 git config --global http.sslverify false
 
-cd ~/containerization/upf/build/scripts
+cd ~/AERPAW_DEV/upf/build/scripts
 
 apt-get update
 ./build_upf --install-deps --force
@@ -566,9 +560,8 @@ sudo mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY 'linux';"
 sudo mysql -u root -e "create database oai_db;"
 
 # Import the provided SQL script
-cd ~/containerization/fed/docker-compose/database
+cd ~/AERPAW_DEV/fed/docker-compose/database
 sudo mysql -u root oai_db < oai_db2.sql
 
-cd ~/containerization
-git clone https://github.com/joshuamoorexyz/oai_cn_configs
+cd ~/AERPAW_DEV
 
