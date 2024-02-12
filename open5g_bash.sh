@@ -38,7 +38,7 @@ ls
 # cd into AMF directory
 cd amf/build/scripts
 # Installing all the needed libraries/packages tfolder_patho build and run AMF
-./build_amf --install-deps --force
+./build_amf --install-deps --force 
 
 # Building AMF
 ./build_amf --clean --Verbose --build-type Release --jobs \
@@ -491,7 +491,7 @@ git config --global http.sslverify false
 cd ~/AERPAW_DEV/upf/build/scripts
 
 apt-get update
-./build_upf --install-deps --force
+./build_upf --install-deps --force --Verbose
 ./build_upf --clean --Verbose --build-type Release --jobs && ldconfig
 
 
