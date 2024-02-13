@@ -1,0 +1,180 @@
+FROM aerpaw_evm_base:latest
+
+ARG GIT_SECRET
+ARG BUILD_DATE
+
+LABEL org.label-schema.build-date=$BUILD_DATE
+
+RUN cd /opt && git clone https://oauth2:$GIT_SECRET@github.ncsu.edu/agurses/UHD-AERPAW.git && cd /opt/UHD-AERPAW \
+    && git remote set-url origin https://github.ncsu.edu/agurses/UHD-AERPAW.git
+# udevadm control is weird and returns a nonzero exit code. note the use of || to continue execution
+RUN cd /opt/UHD-AERPAW/host && mkdir build && cd build \
+    && cmake -DUHD_PYTHON_DIR=/usr/local/lib/python3.10/dist-packages/ -DUSRP_MPM_PYTHON_DIR=/usr/local/lib/python3.10/dist-packages ../ \
+    && make -j 16 \
+    && make test \
+    && make install \
+    && ldconfig \
+    && cd /opt/UHD-AERPAW \
+    && ./install_config.sh PROD \
+    && uhd_images_downloader \
+    && cd /usr/local/lib/uhd/utils \
+    && cp uhd-usrp.rules /etc/udev/rules.d/ \
+    && echo "@usrp - rtprio  99" >> /etc/security/limits.conf \
+    && rm -rf /opt/UHD-AERPAW
+
+# GNU Radio
+RUN cd /opt \
+    && git clone --recursive https://github.com/gnuradio/volk.git \
+    && cd volk \
+    && git checkout tags/v3.0.0 \
+    && mkdir -p build \
+    && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 ../ \
+    && make -j12 \
+    # && make test \ needs to be ignored because they don't all pass >:(
+    && make install \
+    && ldconfig
+
+RUN cd /opt \
+    && curl -Lo pybind11.tar.gz https://github.com/pybind/pybind11/archive/v2.4.3.tar.gz  \
+    && mkdir -p pybind11 && tar xzf pybind11.tar.gz -C pybind11 --strip-components=1 && cd pybind11 \
+    && mkdir -p build && cd build  \
+    && cmake .. -DCMAKE_BUILD_TYPE=Release -DPYBIND11_TEST=OFF  \
+    && make && make install
+
+RUN cd /opt \
+    && git clone https://github.com/gnuradio/gnuradio.git \
+    && cd gnuradio \
+    && git checkout maint-3.8 \
+    && mkdir -p build \
+    && cd build \
+    && cmake -DCMAKE_BUILD_TYPE=Release -DPYTHON_EXECUTABLE=/usr/bin/python3 -DENABLE_INTERNAL_VOLK=OFF -DENABLE_GRC=ON ../ \
+    && make -j16 \
+    # && make test \ once again this randomly fails, just skip >:(
+    && make install \
+    && ldconfig
+
+# install profile software in E-VM
+
+ENV REPO=/root/AERPAW-Dev
+ENV AERPAW_REPO="${REPO}"
+RUN cd /root \
+    && git clone https://oauth2:$GIT_SECRET@github.ncsu.edu/rdutta/AERPAW-Dev.git \
+    && cd $REPO \
+    && git remote set-url origin https://github.ncsu.edu/rdutta/AERPAW-Dev.git \
+    && ln -s $REPO/AHN/E-VM/Profile_software/  /root/Profiles \
+    && ln -s /root/Profiles/ProfileScripts/startAll.sh  /root/startexperiment.sh \
+    && ln -s /root/Profiles/ProfileScripts/stopAll.sh  /root/stopexperiment.sh \
+    && ln -s /root/Profiles/ProfileScripts/reset.sh  /root/reset.sh \
+    && mkdir -p Results
+
+# aerpaw gnu radio blocks
+RUN cd /root \
+    && mkdir -p .grc_gnuradio \
+    && cp /root/AERPAW-Dev/AHN/E-VM/Profile_software/SDR_control/Channel_Sounder/AERPAW_Sink.py /root/.grc_gnuradio/AERPAW_Sink.py \
+    && cp /root/AERPAW-Dev/AHN/E-VM/Profile_software/SDR_control/Channel_Sounder/AERPAW_Sink.py.block.yml /root/.grc_gnuradio/AERPAW_Sink.py.block.yml \
+    && cp /root/AERPAW-Dev/AHN/E-VM/Profile_software/SDR_control/Channel_Sounder/AERPAW_Source.py /root/.grc_gnuradio/AERPAW_Source.py \
+    && cp /root/AERPAW-Dev/AHN/E-VM/Profile_software/SDR_control/Channel_Sounder/AERPAW_Source.py.block.yml /root/.grc_gnuradio/AERPAW_Source.py.block.yml
+
+# install zmq for octave -- TODO check to see if needed
+RUN octave --eval "pkg install -forge zeromq"
+
+# install aerpawlib
+RUN cd /root/AERPAW-Dev/AHN/E-VM/Profile_software/vehicle_control/aerpawlib \
+    && pip3 install -e .
+
+# install srsRAN (UHD should be installed)
+# install srsLTE
+
+RUN  cd /opt \
+    && git clone https://github.com/anilgurses/srsRAN.git \
+    && cd srsRAN/ \
+    && mkdir build \
+    && cd build \
+    && cmake -DENABLE_AVX512=OFF ../ \
+    && make -j16 \
+    && make install \
+    && ldconfig \
+    # note that the below is srsran in the docs. this is the only existing script
+    && srsran_install_configs.sh user \
+    && cp /root/AERPAW-Dev/AHN/E-VM/Profile_software/SDR_control/SRS_SISO/EPC_ENB/user_db.csv /root/.config/srsran/user_db.csv \
+    && ln -s /opt/srsRAN/build/lib/examples/npdsch_enodeb /root/npdsch_enodeb \
+    && ln -s /opt/srsRAN/build/lib/examples/npdsch_ue /root/npdsch_ue \
+    && cp -f $REPO/AHN/E-VM/Profile_software/SDR_control/SRS_SISO/EPC_ENB/user_db.csv /root/.config/srsran/user_db.csv
+
+# compile modified cell search: example exp 5
+RUN cd $REPO/AHN/E-VM/Profile_software/SDR_control/CellSearch \
+    && ./start_cellsearch.sh -m BUILD
+
+# srsRAN 5G/Project 
+RUN cd /opt \ 
+    && git clone https://github.com/srsRAN/srsRAN_Project.git \
+    && cd srsRAN_Project \
+    && mkdir build \
+    && cd build \
+    && cmake ../ \
+    && make -j 16 \
+    && make install 
+
+# OAI software
+RUN cd /opt \
+    && git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git \
+    && cd openairinterface5g \
+    && git checkout v1.2.2 \
+    && cp /root/Profiles/ProfileScripts/Radio/Helpers/oai_container.patch /opt/openairinterface5g/ \
+    && git apply oai_container.patch \    && cd cmake_targets \
+    && ./build_oai -I --eNB; exit 0; 
+## Temporary solution, disabling this for now. It fails
+# RUN cd /opt/openairinterface5g/cmake_targets \
+#     && ./build_oai -I --eNB \
+#     && ./build_oai -w USRP --eNB
+#
+
+
+
+# OAI GNB and nrUE
+
+
+RUN cd /opt \
+    && git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git ./oai5g \
+    && cd oai5g \
+    && git checkout develop \
+    && cd cmake_targets \
+    && apt update \
+    && apt install -y libforms-dev libforms-bin tmux \
+    && ./build_oai -I \
+    && ./build_oai -w USRP --ninja --nrUE --gNB --build-lib "nrscope" -C
+
+
+
+# run w/ service mongodb start
+
+# ip commands (can't run w/out network)
+# ip addr del 10.45.0.1/16 dev ogstun 2> /dev/null
+# ip addr add 10.45.0.1/16 dev ogstun
+# ip addr del 2001:db8:cafe::1/48 dev ogstun 2> /dev/null
+# ip addr add 2001:db8:cafe::1/48 dev ogstun
+# ip link set ogstun up
+
+# install open5gs
+# NOTE i changed v2.4.11 -> 2.4.12 because they removed 2.4.11 from the repo. i suspect this needs to be updated as time goes on
+RUN cd /opt \
+    && git clone https://github.com/open5gs/open5gs.git \
+    && cd open5gs \
+    && git checkout tags/v2.6.4 \
+    && meson build --prefix=`pwd`/install \
+    && ninja -C build \
+    && cd build \
+    && ninja install \
+    && cp /root/Profiles/ProfileScripts/Radio/Helpers/open5gs_nr_core.yaml /opt/open5gs/build/configs/open5gs_nr_core.yaml \
+    && cp /root/Profiles/ProfileScripts/Radio/Helpers/ho_core.yaml /opt/open5gs/build/configs/ho_core.yaml \
+    && cp -r $REPO/DCS/platform_control/container_image_gen/open5gsdb /opt/
+# add users (can't really do?)
+# cd /opt/open5gs/misc/db
+# ./open5gs-dbctl add [imsi] [key] [opc]
+#Example:
+#./open5gs-dbctl add 001010123456780 00112233445566778899aabbccddeeff 63BFA50EE6523365FF14C1F45F88737D
+
+ENV PYTHONPATH "${PYTHONPATH}:/usr/local/lib/python3/dist-packages/"
+
+RUN echo "export PATH=$PATH:${AERPAW_REPO}/AHN/E-VM/bin" >> ~/.bashrc
