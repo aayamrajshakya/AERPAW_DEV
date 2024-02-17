@@ -1,26 +1,20 @@
-# AERPAW project
+## <span style="font-family: tahoma, arial, helvetica, sans-serif;">AERPAW Project</span>
 
-## Journal
+---
 
-1.  [Jan 5 -9](journal/Jan29-Feb2.md)
-2.  Dec11-15
+## <span style="font-family: tahoma, arial, helvetica, sans-serif;">Journal</span>
 
-## Building the Dockerfile & Running
+<ol><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Dec11-15.md">Dec 11-15</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Dec18-22.md">Dec 18-22</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Dec25-29.md">Dec 25-29</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Jan1-5.md">Jan 1-5</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Jan8-12.md">Jan 8-12</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Jan15-19.md">Jan 15-19</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Jan22-26.md">Jan 22-26</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Jan29-Feb2.md">Jan 29-Feb 2</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Feb5-9.md">Feb 5-9</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Feb12-16.md">Feb 12-16</a></span></li></ol>
 
-1\. [Instructions](journal/buildingandrunning.md)
+## <span style="font-family: tahoma, arial, helvetica, sans-serif;">Building the Dockerfile &amp; Running</span>
 
-## Config Files:
+<span style="font-family: tahoma, arial, helvetica, sans-serif;">1.
+<a href="journal/buildingandrunning.md">Instructions</a></span>
 
-1.  [AMF config](amf/etc/config.yaml)
-2.  [AUSF_config](ausf/etc/config.yaml)
-3.  [NRF_config](nrf/etc/config.yaml)
-4.  [UDM_config](udm/etc/config.yaml)
-5.  [UDR_config](udr/etc/config.yaml)
-6.  [SMF_config](smf/etc/config.yaml)
-7.  [UPF_config](upf/etc/config.yaml)
-8.  [etc/hosts](hosts)
+## <span style="font-family: tahoma, arial, helvetica, sans-serif;">Config Files:</span>
 
-## Misc
+<ol><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="amf/etc/config.yaml">AMF config</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="ausf/etc/config.yaml">AUSF_config</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="nrf/etc/config.yaml">NRF_config</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="udm/etc/config.yaml">UDM_config</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="udr/etc/config.yaml">UDR_config</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="smf/etc/config.yaml">SMF_config</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="upf/etc/config.yaml">UPF_config</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="hosts">etc/hosts</a></span></li></ol>
 
-1.  [Table of contents](toc.md)
-2.  [Current Questions](journal/Questions.md)
+## <span style="font-family: tahoma, arial, helvetica, sans-serif;">Misc</span>
+
+<ol><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="toc.md">Table of contents</a></span></li><li style="font-family: tahoma, arial, helvetica, sans-serif;"><span style="font-family: tahoma, arial, helvetica, sans-serif;"><a href="journal/Questions.md">Current Questions</a></span></li></ol>
